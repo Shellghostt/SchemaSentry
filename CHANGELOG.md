@@ -43,7 +43,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Nothing is compared yet. There is no diff engine, no rule, no risk score, no report and no corpus
   case, so the tool cannot yet say whether a migration is dangerous.
 - Exit codes 1 and 2 are unreachable in this release.
-- The CI workflow has never executed: the repository has no remote yet.
+- The CI workflow had not executed when this tag was created: the repository had no remote yet. It has
+  since run on GitHub; see [Unreleased].
 - PostgreSQL 14 and 17 are within the supported range and use the same code paths as 13, 15 and 16,
   but only 13, 15 and 16 are in the CI matrix.
 - `sqlglot` and `pyyaml` are declared dependencies but are not used by any code path yet; they are
