@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "schemasentry"
-version = "0.0.0"
+version = "0.1.0"
 description = "Detect dangerous database schema changes before they reach production."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -32,10 +32,11 @@ dev = [
   "pytest-cov>=5.0",
   "ruff>=0.7",
   "mypy>=1.11",
+  "jsonschema>=4.23",
 ]
 
 [project.scripts]
-schemasentry = "schemasentry.cli:app"
+schemasentry = "schemasentry.cli:run"
 
 [tool.setuptools.packages.find]
 where = ["src"]

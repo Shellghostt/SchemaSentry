@@ -2,13 +2,13 @@
 
 > Detect dangerous database schema changes before they reach production.
 
-![status](https://img.shields.io/badge/status-skeleton-lightgrey)
+![status](https://img.shields.io/badge/status-M1_snapshot-orange)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.12+-3776AB?logo=python&logoColor=white)
 
-**Status: skeleton (v0.0.0).** This repository contains the project structure, architecture decisions and
-an implementation plan. **Nothing is functional yet.** The word "works" does not appear below unless it is
-true.
+**Status: M1 (v0.1.0).** SchemaSentry captures a deterministic JSON snapshot of a PostgreSQL schema
+through a read-only transaction. **It does not compare anything yet**: there is no diff engine, no rule,
+no risk score and no report. The snapshot is the input every later stage will consume.
 
 ## Why this exists
 
@@ -21,6 +21,7 @@ before the migration runs.
 
 | Capability | Milestone | Status |
 |---|---|---|
+| Capture a schema snapshot | M1 | **Done** |
 | Compare schema snapshots | M2 | Not started |
 | Detect dropped columns and tables | M3 | Not started |
 | Detect incompatible type changes | M3 | Not started |
@@ -59,36 +60,119 @@ table of forty million rows.
 
 ## Quickstart
 
-Not runnable yet. The skeleton builds and prints its version:
+Requires Python 3.12+ and a PostgreSQL 13 to 17 server (the integration suite uses Docker).
 
 ```bash
 make bootstrap
-.venv/Scripts/schemasentry version   # Windows
-.venv/bin/schemasentry version          # macOS / Linux
+.venv/Scripts/python -m schemasentry version   # Windows
+.venv/bin/python -m schemasentry version         # macOS / Linux
 ```
 
-Full local stack (Postgres, Redis, API, workers) arrives with
-milestone M1.
+A disposable database for local work:
+
+```bash
+make db-up      # docker compose, postgres:16 on port 55432
+```
+
+Capture a snapshot:
+
+```bash
+export SCHEMASENTRY_DATABASE_URL="postgresql://schemasentry:schemasentry@localhost:55432/schemasentry"
+schemasentry snapshot --output snapshot.json
+```
+
+The JSON goes to stdout when `--output` is omitted, so it pipes cleanly:
+
+```bash
+schemasentry snapshot --schema public | jq '.tables[].name'
+```
+
+Real output from a local PostgreSQL 16 (abridged to the first column and the sequence):
+
+```json
+{
+  "schemaVersion": 1,
+  "dialect": "postgres",
+  "serverVersion": "16.16",
+  "capturedAt": "2026-11-13T10:00:00Z",
+  "database": "schemasentry",
+  "schemas": ["public"],
+  "tables": [
+    {
+      "schema": "public",
+      "name": "accounts",
+      "rowEstimate": null,
+      "totalBytes": 16384,
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 1,
+          "type": "bigint",
+          "normalisedType": "bigint",
+          "length": null,
+          "nullable": false,
+          "default": "nextval('accounts_id_seq'::regclass)",
+          "identity": false,
+          "generated": null,
+          "generationExpression": null
+        }
+      ],
+      "constraints": [],
+      "indexes": []
+    }
+  ],
+  "sequences": [
+    {
+      "schema": "public",
+      "name": "accounts_id_seq",
+      "dataType": "bigint",
+      "startValue": 1,
+      "incrementBy": 1,
+      "cycle": false
+    }
+  ],
+  "extensions": ["plpgsql"]
+}
+```
+
+Every field is always present. `null` means "unknown", never "zero": a table nobody has analysed has
+`rowEstimate: null`, and a user-defined type keeps its name instead of being dropped. The format is
+pinned by [docs/schema/snapshot-v1.schema.json](docs/schema/snapshot-v1.schema.json) and validated by
+the test suite.
+
+For a byte-identical file, fix the timestamp:
+
+```bash
+schemasentry snapshot --captured-at 2026-11-13T10:00:00Z --output snapshot.json
+```
+
+`SOURCE_DATE_EPOCH` works too. Exit codes: `0` success, `3` tool error (connection, unsupported server
+version), `4` invalid usage. Codes `1` and `2` belong to the comparison and risk milestones and are
+unreachable today.
 
 ## Repository layout
 
 | Path | Purpose |
 |---|---|
-| `src/schemasentry/cli.py` | Typer commands: snapshot, compare, report |
-| `src/schemasentry/introspect.py` | Reads pg_catalog and information_schema into a snapshot |
-| `src/schemasentry/snapshot.py` | Snapshot model, serialisation, versioning |
-| `src/schemasentry/diff.py` | Structural comparison of two snapshots |
-| `src/schemasentry/rules` | One module per rule id (SS001...) |
-| `src/schemasentry/dialects` | PostgreSQL dialect behaviour, lock estimates |
-| `src/schemasentry/report` | Markdown and JSON renderers |
-| `tests/corpus` | Golden migration cases, the accuracy contract |
+| `src/schemasentry/cli.py` | Typer commands: snapshot, version |
+| `src/schemasentry/config.py` | Environment variables, timestamp resolution, DSN redaction |
+| `src/schemasentry/db.py` | Read-only connection, statement timeout |
+| `src/schemasentry/introspect.py` | Capture orchestration: connect, dialect, snapshot |
+| `src/schemasentry/snapshot.py` | Snapshot model, deterministic ordering and serialisation |
+| `src/schemasentry/dialects` | One module per engine; PostgreSQL implemented, MySQL in M6 |
+| `src/schemasentry/rules` | One module per rule id (M3; empty today) |
+| `src/schemasentry/report` | Markdown and JSON renderers (M4; empty today) |
+| `docs/schema` | Committed JSON schemas, enforced by tests |
+| `tests/unit` | Model, configuration and CLI tests, no database needed |
+| `tests/integration` | Tests against a real PostgreSQL server |
+| `tests/corpus` | Golden migration cases, the accuracy contract (empty until M3) |
 | `action` | GitHub Action wrapper (M5) |
 
 ## Roadmap
 
 | Milestone | Deliverable | Status |
 |---|---|---|
-| M1 | PostgreSQL introspection and normalised snapshot format | Not started |
+| M1 | PostgreSQL introspection and normalised snapshot format | **Done** (v0.1.0) |
 | M2 | Snapshot storage and structural comparison | Not started |
 | M3 | Change classification rules SS001-SS007 | Not started |
 | M4 | Risk scoring, Markdown and JSON reports, exit codes | Not started |

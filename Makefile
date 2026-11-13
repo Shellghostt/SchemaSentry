@@ -1,7 +1,7 @@
 PY := python
 VENV := .venv
 
-.PHONY: bootstrap fmt lint type test cov build docker clean
+.PHONY: bootstrap fmt lint type test cov integration build docker db-up db-down clean
 
 bootstrap:
 	$(PY) -m venv $(VENV)
@@ -22,6 +22,15 @@ test:
 
 cov:
 	$(VENV)/Scripts/python -m pytest --cov=src --cov-report=term-missing 2>/dev/null || $(VENV)/bin/python -m pytest --cov=src --cov-report=term-missing
+
+integration:
+	$(VENV)/Scripts/python -m pytest tests/integration 2>/dev/null || $(VENV)/bin/python -m pytest tests/integration
+
+db-up:
+	docker compose -f deploy/docker-compose.yml up -d postgres
+
+db-down:
+	docker compose -f deploy/docker-compose.yml down -v
 
 docker:
 	docker build -t schemasentry:latest .

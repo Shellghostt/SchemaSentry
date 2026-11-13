@@ -2,8 +2,8 @@
 project: SchemaSentry
 slug: schemasentry
 owner: shellghostt
-status: skeleton
-version: 0.0.0
+status: mvp
+version: 0.1.0
 language: Python 3.12
 license: Apache-2.0
 rank: 3
@@ -25,23 +25,30 @@ updated: 2026-11-13
 
 ```yaml
 project: SchemaSentry
-status: skeleton
-version: 0.0.0
-builds: true          # package imports, CLI prints its version
-functional: false
+status: mvp
+version: 0.1.0
+builds: true
+functional: partial            # snapshotting works; nothing compares or judges yet
 
 implemented:
-  - repository skeleton
-  - typer cli with a version command
-  - empty golden corpus directory
+  - typer cli with version and snapshot
+  - snapshot --database, --output, --schema, --captured-at
+  - read-only connection with statement_timeout = 5s
+  - postgres dialect (pg_catalog introspection) for server majors 13 to 17
+  - snapshot model with deterministic ordering and serialisation
+  - committed json schema (docs/schema/snapshot-v1.schema.json) enforced by tests
+  - integration suite that runs against a real postgres server
+  - exit codes 0, 3 and 4 (1 and 2 belong to the comparison and risk milestones)
 
 not_implemented:
-  - schema introspection
-  - snapshot model
-  - diff engine
+  - snapshot comparison
+  - change detection
   - classification rules
   - risk scoring
-  - reports
+  - markdown and json reports
+  - explain and rules commands
+  - migration parsing (sqlglot)
+  - hints and rename support
   - github action
   - mysql support
 
@@ -51,6 +58,7 @@ source_of_truth:
   architecture: docs/ARCHITECTURE.md
   decisions: docs/adr/
   status: README.md#roadmap
+  snapshot_contract: docs/schema/snapshot-v1.schema.json
 
 forbidden_claims:
   - "detects all dangerous migrations"
@@ -225,6 +233,11 @@ Mode 2 is best-effort by design: SQL that cannot be modelled statically is repor
 Row estimates come from `pg_class.reltuples`; when the table has never been analysed, `rowEstimate` is `null`
 and every size-dependent rule reports `confidence: low` instead of guessing.
 
+The machine-readable contract is `docs/schema/snapshot-v1.schema.json`, and a test validates a real
+captured snapshot against it. It adds three fields to the example above, each because the shorter form
+would state something false: `generationExpression` on a generated column, `referencedTable` and
+`referencedColumns` on a foreign key, and `expression` on an index. See ADR 0002.
+
 **Finding** (`expected.json` in the corpus):
 
 ```json
@@ -268,6 +281,10 @@ schemasentry version
 
 `--database` is read from the environment by default (`SCHEMASENTRY_DATABASE_URL`), never from a flag in CI
 logs. The tool opens a read-only transaction and sets `statement_timeout = 5s`.
+
+Implemented in M1: `snapshot` (with `--database`, `--output`, `--schema`, `--captured-at`) and `version`.
+The other commands are planned for M2 to M4. Exit codes 1 and 2 are unreachable in M1 because nothing
+finds anything yet.
 
 ---
 
@@ -354,12 +371,20 @@ schemasentry/
 
 **Acceptance criteria**
 
-- [ ] Captures tables, columns, types, nullability, defaults, identity, constraints, indexes, sequences
-- [ ] Two runs against an unchanged database produce byte-identical output
-- [ ] Read-only transaction; `statement_timeout` enforced
-- [ ] Row estimates are null, not zero, for unanalysed tables
+- [x] Captures tables, columns, types, nullability, defaults, identity, constraints, indexes, sequences
+- [x] Two runs against an unchanged database produce byte-identical output
+- [x] Read-only transaction; `statement_timeout` enforced
+- [x] Row estimates are null, not zero, for unanalysed tables
 - [ ] Integration tests run against PG 13, 15 and 16 in CI
-- [ ] Unknown column types are preserved verbatim, not dropped
+- [x] Unknown column types are preserved verbatim, not dropped
+
+Status note: the integration suite passes against a real PostgreSQL 13.23, 15 and 16.16 server, run
+locally with Docker on 2026-11-13. The CI workflow defines the same three-version matrix, but it has
+never executed because the repository has no remote yet, so that checkbox stays open. Byte-identical
+output requires a fixed `capturedAt`: use `--captured-at` or `SOURCE_DATE_EPOCH`, as the test suite
+does. The snapshot format is pinned by `docs/schema/snapshot-v1.schema.json` and validated by the
+test suite. ADR 0002 records the decisions made along the way, including the PostgreSQL 13 versus 14
+difference in how an unanalysed table reports its row estimate.
 
 ### M2 — Comparison engine
 
@@ -505,8 +530,9 @@ schemasentry/
 
 ## 16. Anti-hallucination contract
 
-**Facts:** the package imports and `schemasentry version` prints `0.0.0`. There is no introspection, no diff,
-no rule and no corpus case.
+**Facts:** the package imports, `schemasentry version` prints `0.1.0`, and `schemasentry snapshot`
+captures a deterministic JSON snapshot of a PostgreSQL 13 to 17 database through a read-only
+transaction. There is no comparison, no rule, no risk score, no report and no corpus case.
 
 **Rules:**
 

@@ -1,7 +1,9 @@
 # SchemaSentry Architecture
 
-**Status: planned. No implementation exists yet.** This document describes intended structure, not
-delivered behaviour. The authoritative specification is [PLAN.md](PLAN.md).
+**Status: partially implemented (M1).** Introspection and the snapshot format exist and are tested against
+real PostgreSQL 13, 15 and 16 servers. There is no comparison engine, no rule and no report yet, so the
+tool cannot yet say anything about a migration. This document describes intended structure; the
+authoritative specification is [PLAN.md](PLAN.md), and section 0 there is the current truth.
 
 ## Context
 

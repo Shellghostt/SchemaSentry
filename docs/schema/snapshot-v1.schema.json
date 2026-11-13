@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/shellghostt/schemasentry/schema/snapshot-v1.schema.json",
+  "title": "SchemaSentry snapshot v1",
+  "description": "The read-only, deterministic schema state produced by `schemasentry snapshot`. Every field is present; null means unknown, not zero.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "dialect",
+    "serverVersion",
+    "capturedAt",
+    "database",
+    "schemas",
+    "tables",
+    "sequences",
+    "extensions"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "dialect": { "type": "string", "enum": ["postgres"] },
+    "serverVersion": { "type": "string", "minLength": 1 },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "database": { "type": "string", "minLength": 1 },
+    "schemas": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "tables": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/table" }
+    },
+    "sequences": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/sequence" }
+    },
+    "extensions": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "$defs": {
+    "table": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "name", "rowEstimate", "totalBytes", "columns", "constraints", "indexes"],
+      "properties": {
+        "schema": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "rowEstimate": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "pg_class.reltuples, or null when the table has never been analysed."
+        },
+        "totalBytes": { "type": "integer", "minimum": 0 },
+        "columns": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/column" }
+        },
+        "constraints": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/constraint" }
+        },
+        "indexes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/index" }
+        }
+      }
+    },
+    "column": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "ordinal",
+        "type",
+        "normalisedType",
+        "length",
+        "nullable",
+        "default",
+        "identity",
+        "generated",
+        "generationExpression"
+      ],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "ordinal": { "type": "integer", "minimum": 1 },
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "description": "format_type output, verbatim, including an unknown user-defined type."
+        },
+        "normalisedType": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Dialect-independent short name. Unknown type names are repeated verbatim."
+        },
+        "length": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "description": "Declared length for varchar, char and bit types; null otherwise."
+        },
+        "nullable": { "type": "boolean" },
+        "default": {
+          "type": ["string", "null"],
+          "description": "Default expression. Null for generated columns, whose expression is in generationExpression."
+        },
+        "identity": { "type": "boolean" },
+        "generated": {
+          "type": ["string", "null"],
+          "description": "attgenerated, e.g. stored; null for an ordinary column."
+        },
+        "generationExpression": {
+          "type": ["string", "null"],
+          "description": "The generation expression, preserved so a change to it is visible to the diff."
+        }
+      }
+    },
+    "constraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "kind", "columns", "referencedTable", "referencedColumns"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "kind": {
+          "type": "string",
+          "enum": ["primary_key", "unique", "foreign_key", "check", "exclusion", "trigger"]
+        },
+        "columns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Empty for a check constraint that names no column."
+        },
+        "referencedTable": {
+          "type": ["string", "null"],
+          "description": "schema.table for a foreign key; null otherwise."
+        },
+        "referencedColumns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Referenced columns for a foreign key; empty otherwise."
+        }
+      }
+    },
+    "index": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "columns", "unique", "method", "predicate", "valid", "expression"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "columns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Plain key columns only. Expressions are in expression."
+        },
+        "unique": { "type": "boolean" },
+        "method": { "type": "string", "minLength": 1 },
+        "predicate": {
+          "type": ["string", "null"],
+          "description": "Partial index predicate, or null."
+        },
+        "valid": { "type": "boolean" },
+        "expression": {
+          "type": ["string", "null"],
+          "description": "Server rendering of index expressions, or null."
+        }
+      }
+    },
+    "sequence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "name", "dataType", "startValue", "incrementBy", "cycle"],
+      "properties": {
+        "schema": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "dataType": { "type": "string", "minLength": 1 },
+        "startValue": { "type": "integer" },
+        "incrementBy": { "type": "integer" },
+        "cycle": { "type": "boolean" }
+      }
+    }
+  }
+}
