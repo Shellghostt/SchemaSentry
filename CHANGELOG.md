@@ -7,6 +7,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+
+- The repository is published at https://github.com/Shellghostt/SchemaSentry and the CI workflow has
+  executed. The first run on 2026-11-13 passed the PostgreSQL 13, 15 and 16 matrix.
+
 ### Planned
 
 - M2: comparison engine over two snapshot files, with fixture pairs and golden diff tests.

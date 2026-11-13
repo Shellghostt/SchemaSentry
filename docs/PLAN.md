@@ -375,12 +375,12 @@ schemasentry/
 - [x] Two runs against an unchanged database produce byte-identical output
 - [x] Read-only transaction; `statement_timeout` enforced
 - [x] Row estimates are null, not zero, for unanalysed tables
-- [ ] Integration tests run against PG 13, 15 and 16 in CI
+- [x] Integration tests run against PG 13, 15 and 16 in CI
 - [x] Unknown column types are preserved verbatim, not dropped
 
 Status note: the integration suite passes against a real PostgreSQL 13.23, 15 and 16.16 server, run
-locally with Docker on 2026-11-13. The CI workflow defines the same three-version matrix, but it has
-never executed because the repository has no remote yet, so that checkbox stays open. Byte-identical
+locally with Docker on 2026-11-13. The CI workflow defines the same three-version matrix, and it has
+executed: the first run on GitHub on 2026-11-13 passed against PostgreSQL 13, 15 and 16. Byte-identical
 output requires a fixed `capturedAt`: use `--captured-at` or `SOURCE_DATE_EPOCH`, as the test suite
 does. The snapshot format is pinned by `docs/schema/snapshot-v1.schema.json` and validated by the
 test suite. ADR 0002 records the decisions made along the way, including the PostgreSQL 13 versus 14
