@@ -20,6 +20,7 @@ import pytest
 
 from schemasentry.cli import main
 from schemasentry.db import connect_readonly
+from schemasentry.diff import compare
 from schemasentry.errors import ToolError
 from schemasentry.introspect import capture_snapshot
 from schemasentry.snapshot import Column, Snapshot, Table, to_json
@@ -37,7 +38,7 @@ pytestmark = pytest.mark.skipif(
 def _execute(statements: list[str]) -> None:
     assert DSN is not None
     with (
-        psycopg.connect(DSN, autocommit=True) as connection,
+        psycopg.connect(DSN, autocommit=True, connect_timeout=10) as connection,
         connection.cursor() as cursor,
     ):
         for statement in statements:
@@ -258,9 +259,47 @@ def test_connection_is_read_only_and_timed() -> None:
 
         timeout = connection.execute("SHOW statement_timeout").fetchone()
         assert timeout == {"statement_timeout": "5s"}
+        isolation = connection.execute("SHOW transaction_isolation").fetchone()
+        assert isolation == {"transaction_isolation": "repeatable read"}
 
         with pytest.raises(psycopg.errors.ReadOnlySqlTransaction):
             connection.execute("CREATE TABLE public.must_not_exist (id integer)")
+
+
+def test_live_renames_and_definition_changes(schema_name: str) -> None:
+    assert DSN is not None
+    table = f"{schema_name}.comparison"
+    _execute(
+        [
+            f"CREATE TABLE {table} (id integer PRIMARY KEY, value integer, "
+            "CONSTRAINT comparison_check CHECK (value > 0))",
+            f"CREATE INDEX comparison_value_idx ON {table} (value) INCLUDE (id)",
+        ]
+    )
+    before = capture_snapshot(DSN, schemas=[schema_name], captured_at=CAPTURED_AT)
+    _execute(
+        [
+            f"ALTER TABLE {table} RENAME CONSTRAINT comparison_pkey TO comparison_pk_renamed",
+            f"ALTER TABLE {table} RENAME CONSTRAINT comparison_check TO comparison_check_renamed",
+            f"ALTER INDEX {schema_name}.comparison_value_idx RENAME TO comparison_value_renamed",
+        ]
+    )
+    renamed = capture_snapshot(DSN, schemas=[schema_name], captured_at=CAPTURED_AT)
+    assert compare(before, renamed).changes == []
+    _execute(
+        [
+            f"ALTER TABLE {table} DROP CONSTRAINT comparison_check_renamed",
+            f"ALTER TABLE {table} ADD CONSTRAINT comparison_check_renamed CHECK (value >= 0)",
+            f"DROP INDEX {schema_name}.comparison_value_renamed",
+            f"CREATE INDEX comparison_value_renamed ON {table} (value DESC) INCLUDE (id)",
+        ]
+    )
+    changed = capture_snapshot(DSN, schemas=[schema_name], captured_at=CAPTURED_AT)
+    changes = compare(renamed, changed).changes
+    assert {(c.table, c.object, c.kind) for c in changes} == {
+        ("comparison", "comparison_check_renamed", "constraint_changed"),
+        ("comparison", "comparison_value_renamed", "index_changed"),
+    }
 
 
 def test_missing_schema_is_a_tool_error() -> None:

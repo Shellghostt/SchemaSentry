@@ -37,6 +37,7 @@ def connect_readonly(dsn: str) -> Iterator[Connection[dict[str, Any]]]:
         raise ToolError(f"could not connect to the database: {message}") from None
 
     try:
+        connection.isolation_level = psycopg.IsolationLevel.REPEATABLE_READ
         connection.read_only = True
         with connection.transaction():
             # SET does not accept a bind parameter; the value is a constant in

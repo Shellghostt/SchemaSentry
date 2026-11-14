@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "changes": [
+    {
+      "schema": "public",
+      "table": "t",
+      "object": "id",
+      "kind": "column_changed",
+      "before": {
+        "name": "id",
+        "type": "integer",
+        "normalisedType": "integer",
+        "length": null,
+        "nullable": false,
+        "default": null,
+        "identity": false,
+        "generated": null,
+        "generationExpression": null
+      },
+      "after": {
+        "name": "id",
+        "type": "integer",
+        "normalisedType": "integer",
+        "length": null,
+        "nullable": false,
+        "default": null,
+        "identity": true,
+        "generated": null,
+        "generationExpression": null
+      }
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "changes": [
+    {
+      "schema": "public",
+      "table": "t",
+      "object": "t_check",
+      "kind": "constraint_changed",
+      "before": {
+        "name": "t_check",
+        "kind": "check",
+        "columns": [
+          "id"
+        ],
+        "referencedTable": null,
+        "referencedColumns": [],
+        "definition": "CHECK (id > 0)"
+      },
+      "after": {
+        "name": "t_check",
+        "kind": "foreign_key",
+        "columns": [
+          "id"
+        ],
+        "referencedTable": "public.parent",
+        "referencedColumns": [
+          "id"
+        ],
+        "definition": "FOREIGN KEY (id) REFERENCES parent(id) ON DELETE CASCADE"
+      }
+    }
+  ],
+  "warnings": []
+}

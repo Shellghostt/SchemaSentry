@@ -8,9 +8,10 @@ Exit codes are public API (PLAN section 8):
     3  tool error (connection, parse, unsupported dialect)
     4  invalid usage
 
-M1 implements `snapshot` and `version`. Nothing here analyses a migration.
+M2 implements `snapshot`, structural `diff`, and `version`. Risk analysis is later work.
 """
 
+import io
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -20,6 +21,7 @@ import typer
 
 from schemasentry import __version__
 from schemasentry.config import DATABASE_URL_ENV, resolve_captured_at
+from schemasentry.diff import compare, comparison_json, load_snapshot
 from schemasentry.errors import EXIT_OK, EXIT_TOOL_FAILURE, EXIT_USAGE, ToolError
 from schemasentry.introspect import capture_snapshot
 from schemasentry.snapshot import to_json, write_snapshot
@@ -90,6 +92,20 @@ def snapshot(
                 f"{len(document.sequences)} sequences -> {output}",
                 err=True,
             )
+    except (ToolError, OSError) as exc:
+        typer.echo(f"error: {exc}", err=True)
+        raise typer.Exit(EXIT_TOOL_FAILURE) from None
+
+
+@app.command()
+def diff(
+    before: Annotated[Path, typer.Option("--before", help="Baseline snapshot file.")],
+    after: Annotated[Path, typer.Option("--after", help="Resulting snapshot file.")],
+) -> None:
+    """Print structural changes as JSON. M2 does not classify migration risk."""
+    try:
+        result = compare(load_snapshot(before), load_snapshot(after))
+        typer.echo(comparison_json(result), nl=False)
     except ToolError as exc:
         typer.echo(f"error: {exc}", err=True)
         raise typer.Exit(EXIT_TOOL_FAILURE) from None
@@ -125,6 +141,9 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 def run() -> None:
     """Console-script entry point."""
+    # Keep JSON bytes UTF-8/LF when redirected, including Windows pipes.
+    if isinstance(sys.stdout, io.TextIOWrapper):
+        sys.stdout.reconfigure(encoding="utf-8", newline="\n")
     sys.exit(main())
 
 
