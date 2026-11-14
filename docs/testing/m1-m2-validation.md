@@ -1,7 +1,6 @@
 # SchemaSentry M1/M2 validation — 2026-11-14
 
-Branch: `feat/m2-implementation`. Local completion is unreleased; main is unchanged and no push,
-merge or package publication is part of this work.
+Branch: `feat/m2-implementation`, pushed for remote validation. M2 remains unreleased; main is unchanged.
 
 M2 covers structural table/column/constraint/index changes, deterministic sorting, ignored physical
 column order/statistics and unchanged constraint/index renames. Thirty fixture pairs exceed the
@@ -23,7 +22,9 @@ Windows host. This is a local observation, not a large-production-schema benchma
 distribution builds passed. The non-root Docker runtime built with hashed dependencies and ran a
 column-removal diff with `--network none`. `pip-audit --disable-pip --require-hashes -r requirements.lock`
 found no known vulnerabilities. CI now installs/audits the actual locked runtime dependencies and
-triggers on feature/fix branches. Python 3.13 and the updated remote workflow remain pending CI.
+triggers on feature/fix branches. The [remote M2 CI run](https://github.com/Shellghostt/SchemaSentry/actions/runs/43550178853)
+passed all six jobs at `ad1406c`: Python 3.12/3.13 tests, lint, format and type checks; integration on
+PostgreSQL 13/15/16; and the locked dependency audit.
 
 ```powershell
 $env:SCHEMASENTRY_TEST_DATABASE_URL='postgresql://schemasentry:schemasentry@127.0.0.1:55437/schemasentry'
