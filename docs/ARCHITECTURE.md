@@ -1,9 +1,9 @@
 # SchemaSentry Architecture
 
-**Status: partially implemented (M1).** Introspection and the snapshot format exist and are tested against
-real PostgreSQL 13, 15 and 16 servers. There is no comparison engine, no rule and no report yet, so the
-tool cannot yet say anything about a migration. This document describes intended structure; the
-authoritative specification is [PLAN.md](PLAN.md), and section 0 there is the current truth.
+**Status: M2 complete locally, unreleased.** Read-only introspection feeds deterministic snapshots;
+offline structural comparison produces JSON changes. Risk classification, scoring, SQL prediction
+and richer reports remain planned. [PLAN.md](PLAN.md) is authoritative; [ADR 0003](adr/0003-m2-structural-comparison.md)
+records comparison semantics and evidence limits.
 
 ## Context
 

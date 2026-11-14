@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "changes": [
+    {
+      "schema": "public",
+      "table": "t",
+      "object": "value",
+      "kind": "column_removed",
+      "before": {
+        "name": "value",
+        "type": "text",
+        "normalisedType": "text",
+        "length": null,
+        "nullable": true,
+        "default": null,
+        "identity": false,
+        "generated": null,
+        "generationExpression": null
+      },
+      "after": null
+    }
+  ],
+  "warnings": []
+}

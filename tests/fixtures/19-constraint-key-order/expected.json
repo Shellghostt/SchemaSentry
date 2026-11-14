@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "changes": [
+    {
+      "schema": "public",
+      "table": "t",
+      "object": "t_check",
+      "kind": "constraint_changed",
+      "before": {
+        "name": "t_check",
+        "kind": "check",
+        "columns": [
+          "id"
+        ],
+        "referencedTable": null,
+        "referencedColumns": [],
+        "definition": "CHECK (id > 0)"
+      },
+      "after": {
+        "name": "t_check",
+        "kind": "unique",
+        "columns": [
+          "value",
+          "id"
+        ],
+        "referencedTable": null,
+        "referencedColumns": [],
+        "definition": "UNIQUE (value, id)"
+      }
+    }
+  ],
+  "warnings": []
+}

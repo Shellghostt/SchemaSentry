@@ -9,17 +9,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
+- M2 structural `diff` command, 30 golden snapshot pairs and exact CLI/schema checks.
+- Constraint definitions and index key/include evidence, including native ordering flags,
+  collation and opclass. Legacy snapshots warn when evidence is missing.
+- Versioned diff JSON schema and a hashed runtime dependency lock used by CI and Docker.
 - The repository tracks CodeGraph's index ignore rules and documents it as an optional local tool
   for code navigation. Nothing in the build or in CI depends on it.
 
 ### Changed
 
+- Snapshot capture now uses a read-only REPEATABLE READ transaction for a consistent catalog view.
+- Diff output is UTF-8/LF on Windows pipes. Snapshot input rejects ambiguous JSON fields,
+  non-integer versions and duplicate object identities. Feature branches trigger CI.
 - The repository is published at https://github.com/Shellghostt/SchemaSentry and the CI workflow has
   executed. The first run on 2026-11-13 passed the PostgreSQL 13, 15 and 16 matrix.
 
 ### Planned
 
-- M2: comparison engine over two snapshot files, with fixture pairs and golden diff tests.
+- M3: classification rules SS001–SS007 and migration corpus cases.
 
 ## [0.1.0] - 2026-11-13
 

@@ -21,7 +21,7 @@ import os
 import tempfile
 from contextlib import suppress
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
@@ -67,6 +67,7 @@ class Constraint(SnapshotModel):
     columns: list[str]
     referenced_table: str | None = None
     referenced_columns: list[str] = Field(default_factory=list)
+    definition: str | None = None
 
 
 class Index(SnapshotModel):
@@ -84,6 +85,8 @@ class Index(SnapshotModel):
     predicate: str | None = None
     valid: bool
     expression: str | None = None
+    keys: list[str] | None = None
+    included_columns: list[str] | None = None
 
 
 class Table(SnapshotModel):
@@ -112,7 +115,7 @@ class Sequence(SnapshotModel):
 class Snapshot(SnapshotModel):
     """A complete schema state."""
 
-    schema_version: int = SNAPSHOT_SCHEMA_VERSION
+    schema_version: Literal[1] = 1
     dialect: str
     server_version: str
     captured_at: str

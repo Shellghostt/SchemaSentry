@@ -12,7 +12,7 @@ depends_on:
   - PostgreSQL 13+ (first supported dialect)
   - Python 3.12+
 created: 2026-11-13
-updated: 2026-11-13
+updated: 2026-11-14
 ---
 
 # SchemaSentry — Implementation Plan
@@ -28,21 +28,23 @@ project: SchemaSentry
 status: mvp
 version: 0.1.0
 builds: true
-functional: partial            # snapshotting works; nothing compares or judges yet
+functional: partial            # M1/M2 work; classification and risk scoring remain
 
 implemented:
-  - typer cli with version and snapshot
+  - typer cli with version, snapshot and structural diff
   - snapshot --database, --output, --schema, --captured-at
   - read-only connection with statement_timeout = 5s
   - postgres dialect (pg_catalog introspection) for server majors 13 to 17
   - snapshot model with deterministic ordering and serialisation
   - committed json schema (docs/schema/snapshot-v1.schema.json) enforced by tests
   - integration suite that runs against a real postgres server
-  - exit codes 0, 3 and 4 (1 and 2 belong to the comparison and risk milestones)
+  - offline structural comparison, deterministic UTF-8/LF JSON and 30 exact fixture pairs
+  - bounded/validated snapshot loading and warnings for legacy evidence
+  - read-only REPEATABLE READ capture and full index ordering/collation/opclass metadata
+  - hashed runtime dependencies and feature-branch CI
+  - exit codes 0, 3 and 4 (1 and 2 belong to the risk milestones)
 
 not_implemented:
-  - snapshot comparison
-  - change detection
   - classification rules
   - risk scoring
   - markdown and json reports
@@ -282,9 +284,9 @@ schemasentry version
 `--database` is read from the environment by default (`SCHEMASENTRY_DATABASE_URL`), never from a flag in CI
 logs. The tool opens a read-only transaction and sets `statement_timeout = 5s`.
 
-Implemented in M1: `snapshot` (with `--database`, `--output`, `--schema`, `--captured-at`) and `version`.
-The other commands are planned for M2 to M4. Exit codes 1 and 2 are unreachable in M1 because nothing
-finds anything yet.
+Implemented in M2: `snapshot`, `diff --before FILE --after FILE` and `version`. Diff prints structural
+JSON and exits 0 even with changes. Classification, thresholds and richer reports remain M3/M4; codes
+1 and 2 are unreachable in M2. Input is capped at 64 MiB; malformed/ambiguous input exits 3.
 
 ---
 
@@ -392,11 +394,15 @@ difference in how an unanalysed table reports its row estimate.
 
 **Acceptance criteria**
 
-- [ ] Added/removed tables, columns, constraints and indexes detected
-- [ ] Column order changes and renamed constraints do not produce false changes
-- [ ] Output is deterministic and sorted by (schema, table, object)
-- [ ] 20 fixture pairs with expected change sets, all passing
-- [ ] Comparison of a 500-table snapshot completes in under 10 s
+- [x] Added/removed tables, columns, constraints and indexes detected
+- [x] Column order changes and renamed constraints do not produce false changes
+- [x] Output is deterministic and sorted by (schema, table, object)
+- [x] 20 fixture pairs with expected change sets, all passing
+- [x] Comparison of a 500-table snapshot completes in under 10 s
+
+M2 is complete locally and unreleased. Thirty pairs, real CLI/schema tests and live PG 13/15/16
+checks pass. See ADR 0003 and docs/testing/m1-m2-validation.md. Diff compares tables/columns/constraints/
+indexes; sequences, extensions, capture scope and uncaptured table properties remain outside this milestone.
 
 ### M3 — Classification rules
 
@@ -532,7 +538,8 @@ difference in how an unanalysed table reports its row estimate.
 
 **Facts:** the package imports, `schemasentry version` prints `0.1.0`, and `schemasentry snapshot`
 captures a deterministic JSON snapshot of a PostgreSQL 13 to 17 database through a read-only
-transaction. There is no comparison, no rule, no risk score, no report and no corpus case.
+transaction. M2 compares snapshot structure with deterministic JSON and 30 fixture pairs. There is
+no classification rule, risk score, Markdown report or migration corpus case.
 
 **Rules:**
 
@@ -561,6 +568,6 @@ transaction. There is no comparison, no rule, no risk score, no report and no co
 
 1. Read sections 0, 3 and 9.
 2. `make bootstrap && make test`. The corpus suite should be green and empty.
-3. Start at M1, task SS-003. Do not write a rule before introspection is trustworthy.
+3. M1/M2 are complete locally. Start M3 at SS-013; add corpus cases before classification rules.
 4. Before changing a rule, add the corpus case that proves the change.
 5. If a finding is wrong, the fix is a new case plus a rule change — never a special case in the renderer.

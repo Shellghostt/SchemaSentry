@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "changes": [
+    {
+      "schema": "public",
+      "table": "t",
+      "object": "added",
+      "kind": "constraint_added",
+      "before": null,
+      "after": {
+        "name": "added",
+        "kind": "check",
+        "columns": [
+          "id"
+        ],
+        "referencedTable": null,
+        "referencedColumns": [],
+        "definition": "CHECK (id > 0)"
+      }
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/shellghostt/schemasentry/schema/diff-v1.schema.json",
+  "title": "SchemaSentry M2 structural diff",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "changes", "warnings"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["schema", "table", "object", "kind", "before", "after"],
+        "properties": {
+          "schema": {"type": "string"},
+          "table": {"type": "string"},
+          "object": {"type": "string"},
+          "kind": {"enum": ["table_added", "table_removed", "column_added", "column_removed", "column_changed", "constraint_added", "constraint_removed", "constraint_changed", "index_added", "index_removed", "index_changed"]},
+          "before": {"type": ["object", "null"]},
+          "after": {"type": ["object", "null"]}
+        }
+      }
+    }
+  }
+}

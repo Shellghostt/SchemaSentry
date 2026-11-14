@@ -177,6 +177,7 @@ class PostgresDialect:
                    c.relname AS table_name,
                    con.conname AS name,
                    con.contype AS kind,
+                   pg_get_constraintdef(con.oid, true) AS definition,
                    rn.nspname || '.' || rc.relname AS referenced_table,
                    COALESCE((
                        SELECT array_agg(a.attname ORDER BY k.ord)
@@ -206,6 +207,7 @@ class PostgresDialect:
                 Constraint(
                     name=str(row["name"]),
                     kind=kind,
+                    definition=str(row["definition"]),
                     columns=[str(column) for column in row["columns"]],
                     referenced_table=row["referenced_table"] if kind == "foreign_key" else None,
                     referenced_columns=(
@@ -228,6 +230,25 @@ class PostgresDialect:
                    pg_get_expr(ix.indpred, ix.indrelid) AS predicate,
                    pg_get_expr(ix.indexprs, ix.indrelid) AS expression,
                    ix.indisvalid AS valid,
+                   ARRAY(
+                       SELECT pg_get_indexdef(ix.indexrelid, k, true)
+                           || CASE WHEN (ix.indoption[k-1] & 1) = 1 THEN ' DESC' ELSE ' ASC' END
+                           || CASE WHEN (ix.indoption[k-1] & 2) = 2
+                                   THEN ' NULLS FIRST' ELSE ' NULLS LAST' END
+                           || COALESCE(' COLLATE ' || quote_ident(cn.nspname)
+                                       || '.' || quote_ident(co.collname), '')
+                           || ' OPCLASS ' || quote_ident(onsp.nspname)
+                               || '.' || quote_ident(op.opcname)
+                       FROM generate_series(1, ix.indnkeyatts) k
+                       JOIN pg_opclass op ON op.oid = ix.indclass[k-1]
+                       JOIN pg_namespace onsp ON onsp.oid = op.opcnamespace
+                       LEFT JOIN pg_collation co ON co.oid = ix.indcollation[k-1]
+                       LEFT JOIN pg_namespace cn ON cn.oid = co.collnamespace
+                       ORDER BY k
+                   ) AS keys,
+                   ARRAY(SELECT a.attname FROM unnest(ix.indkey) WITH ORDINALITY k(attnum, ord)
+                         JOIN pg_attribute a ON a.attrelid=ix.indrelid AND a.attnum=k.attnum
+                         WHERE k.ord > ix.indnkeyatts ORDER BY k.ord) AS included_columns,
                    COALESCE((
                        SELECT array_agg(a.attname ORDER BY k.ord)
                        FROM unnest(ix.indkey) WITH ORDINALITY AS k(attnum, ord)
@@ -254,6 +275,8 @@ class PostgresDialect:
                     predicate=row["predicate"],
                     valid=bool(row["valid"]),
                     expression=row["expression"],
+                    keys=[str(key) for key in row["keys"]],
+                    included_columns=[str(column) for column in row["included_columns"]],
                 )
             )
 

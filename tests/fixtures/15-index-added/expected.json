@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "changes": [
+    {
+      "schema": "public",
+      "table": "t",
+      "object": "added",
+      "kind": "index_added",
+      "before": null,
+      "after": {
+        "name": "added",
+        "columns": [
+          "id"
+        ],
+        "unique": false,
+        "method": "btree",
+        "predicate": null,
+        "valid": true,
+        "expression": null,
+        "keys": [
+          "id"
+        ],
+        "includedColumns": []
+      }
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "changes": [
+    {
+      "schema": "public",
+      "table": "t",
+      "object": "value",
+      "kind": "column_changed",
+      "before": {
+        "name": "value",
+        "type": "text",
+        "normalisedType": "text",
+        "length": null,
+        "nullable": true,
+        "default": null,
+        "identity": false,
+        "generated": null,
+        "generationExpression": null
+      },
+      "after": {
+        "name": "value",
+        "type": "numeric(12,2)",
+        "normalisedType": "numeric",
+        "length": null,
+        "nullable": true,
+        "default": null,
+        "identity": false,
+        "generated": null,
+        "generationExpression": null
+      }
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "changes": [
+    {
+      "schema": "public",
+      "table": "t",
+      "object": "extra",
+      "kind": "column_added",
+      "before": null,
+      "after": {
+        "name": "extra",
+        "type": "integer",
+        "normalisedType": "integer",
+        "length": null,
+        "nullable": false,
+        "default": null,
+        "identity": false,
+        "generated": null,
+        "generationExpression": null
+      }
+    }
+  ],
+  "warnings": []
+}

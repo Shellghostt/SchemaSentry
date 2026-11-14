@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "dialect": "postgres",
+  "serverVersion": "16.16",
+  "capturedAt": "2026-11-13T10:00:00Z",
+  "database": "test",
+  "schemas": [
+    "public"
+  ],
+  "tables": [],
+  "sequences": [],
+  "extensions": []
+}

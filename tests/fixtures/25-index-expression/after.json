@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "dialect": "postgres",
+  "serverVersion": "16.16",
+  "capturedAt": "2026-11-13T10:00:00Z",
+  "database": "test",
+  "schemas": [
+    "public"
+  ],
+  "tables": [
+    {
+      "schema": "public",
+      "name": "t",
+      "rowEstimate": null,
+      "totalBytes": 0,
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 1,
+          "type": "integer",
+          "normalisedType": "integer",
+          "length": null,
+          "nullable": false,
+          "default": null,
+          "identity": false,
+          "generated": null,
+          "generationExpression": null
+        },
+        {
+          "name": "value",
+          "ordinal": 2,
+          "type": "text",
+          "normalisedType": "text",
+          "length": null,
+          "nullable": true,
+          "default": null,
+          "identity": false,
+          "generated": null,
+          "generationExpression": null
+        }
+      ],
+      "constraints": [
+        {
+          "name": "t_check",
+          "kind": "check",
+          "columns": [
+            "id"
+          ],
+          "referencedTable": null,
+          "referencedColumns": [],
+          "definition": "CHECK (id > 0)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "t_idx",
+          "columns": [],
+          "unique": false,
+          "method": "btree",
+          "predicate": null,
+          "valid": true,
+          "expression": "lower(value)",
+          "keys": [
+            "lower(value)"
+          ],
+          "includedColumns": []
+        }
+      ]
+    }
+  ],
+  "sequences": [],
+  "extensions": []
+}

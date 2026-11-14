@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "changes": [
+    {
+      "schema": "public",
+      "table": "t",
+      "object": "t",
+      "kind": "table_removed",
+      "before": {
+        "schema": "public",
+        "name": "t",
+        "columns": [
+          {
+            "name": "id",
+            "type": "integer",
+            "normalisedType": "integer",
+            "length": null,
+            "nullable": false,
+            "default": null,
+            "identity": false,
+            "generated": null,
+            "generationExpression": null
+          },
+          {
+            "name": "value",
+            "type": "text",
+            "normalisedType": "text",
+            "length": null,
+            "nullable": true,
+            "default": null,
+            "identity": false,
+            "generated": null,
+            "generationExpression": null
+          }
+        ],
+        "constraints": [
+          {
+            "name": "t_check",
+            "kind": "check",
+            "columns": [
+              "id"
+            ],
+            "referencedTable": null,
+            "referencedColumns": [],
+            "definition": "CHECK (id > 0)"
+          }
+        ],
+        "indexes": [
+          {
+            "name": "t_idx",
+            "columns": [
+              "id"
+            ],
+            "unique": false,
+            "method": "btree",
+            "predicate": null,
+            "valid": true,
+            "expression": null,
+            "keys": [
+              "id"
+            ],
+            "includedColumns": []
+          }
+        ]
+      },
+      "after": null
+    }
+  ],
+  "warnings": []
+}

@@ -2,13 +2,13 @@
 
 > Detect dangerous database schema changes before they reach production.
 
-![status](https://img.shields.io/badge/status-M1_snapshot-orange)
+![status](https://img.shields.io/badge/status-M2_comparison-orange)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.12+-3776AB?logo=python&logoColor=white)
 
-**Status: M1 (v0.1.0).** SchemaSentry captures a deterministic JSON snapshot of a PostgreSQL schema
-through a read-only transaction. **It does not compare anything yet**: there is no diff engine, no rule,
-no risk score and no report. The snapshot is the input every later stage will consume.
+**Status: M2 complete locally (unreleased).** SchemaSentry captures read-only PostgreSQL snapshots and
+compares tables, columns, constraints and indexes with deterministic JSON output. Risk rules, scoring,
+migration prediction and Markdown reports remain later milestones.
 
 ## Why this exists
 
@@ -22,7 +22,7 @@ before the migration runs.
 | Capability | Milestone | Status |
 |---|---|---|
 | Capture a schema snapshot | M1 | **Done** |
-| Compare schema snapshots | M2 | Not started |
+| Compare schema snapshots | M2 | **Done (unreleased)** |
 | Detect dropped columns and tables | M3 | Not started |
 | Detect incompatible type changes | M3 | Not started |
 | Flag potentially locking migrations | M3 | Not started |
@@ -147,14 +147,31 @@ schemasentry snapshot --captured-at 2026-11-13T10:00:00Z --output snapshot.json
 ```
 
 `SOURCE_DATE_EPOCH` works too. Exit codes: `0` success, `3` tool error (connection, unsupported server
-version), `4` invalid usage. Codes `1` and `2` belong to the comparison and risk milestones and are
-unreachable today.
+version), `4` invalid usage. Codes `1` and `2` belong to the risk milestones and remain unreachable in M2.
+
+Compare two snapshots offline:
+
+```bash
+schemasentry diff --before tests/fixtures/05-column-removed/before.json --after tests/fixtures/05-column-removed/after.json
+```
+
+Successful diffs exit 0 even when changes exist; this is structural evidence, not a risk verdict.
+Output follows [the diff schema](docs/schema/diff-v1.schema.json), ignores column order/statistics,
+and suppresses constraint/index renames with unchanged definitions. Use matching capture scopes and
+the same collector version. Legacy snapshots warn about incomplete evidence. Sequence/extension
+changes and uncaptured table properties are outside M2. See [ADR 0003](docs/adr/0003-m2-structural-comparison.md).
+
+Tests include 30 exact fixture pairs, real CLI subprocesses, a 500-table performance check and live
+PostgreSQL 13/15/16 cases. [Validation results](docs/testing/m1-m2-validation.md) record the commands.
+Install hashed runtime dependencies with `pip install --require-hashes -r requirements.lock`, then
+install development tools with `pip install -e ".[dev]"`. CI and the runtime image use this lock.
 
 ## Repository layout
 
 | Path | Purpose |
 |---|---|
-| `src/schemasentry/cli.py` | Typer commands: snapshot, version |
+| `src/schemasentry/cli.py` | Typer commands: snapshot, diff, version |
+| `src/schemasentry/diff.py` | Pure structural comparator and bounded snapshot loader |
 | `src/schemasentry/config.py` | Environment variables, timestamp resolution, DSN redaction |
 | `src/schemasentry/db.py` | Read-only connection, statement timeout |
 | `src/schemasentry/introspect.py` | Capture orchestration: connect, dialect, snapshot |
@@ -173,7 +190,7 @@ unreachable today.
 | Milestone | Deliverable | Status |
 |---|---|---|
 | M1 | PostgreSQL introspection and normalised snapshot format | **Done** (v0.1.0) |
-| M2 | Snapshot storage and structural comparison | Not started |
+| M2 | Snapshot storage and structural comparison | **Done (unreleased)** |
 | M3 | Change classification rules SS001-SS007 | Not started |
 | M4 | Risk scoring, Markdown and JSON reports, exit codes | Not started |
 | M5 | GitHub Action and CI integration | Not started |

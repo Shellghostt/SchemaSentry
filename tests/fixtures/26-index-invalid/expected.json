@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "changes": [
+    {
+      "schema": "public",
+      "table": "t",
+      "object": "t_idx",
+      "kind": "index_changed",
+      "before": {
+        "name": "t_idx",
+        "columns": [
+          "id"
+        ],
+        "unique": false,
+        "method": "btree",
+        "predicate": null,
+        "valid": true,
+        "expression": null,
+        "keys": [
+          "id"
+        ],
+        "includedColumns": []
+      },
+      "after": {
+        "name": "t_idx",
+        "columns": [
+          "id"
+        ],
+        "unique": false,
+        "method": "btree",
+        "predicate": null,
+        "valid": false,
+        "expression": null,
+        "keys": [
+          "id"
+        ],
+        "includedColumns": []
+      }
+    }
+  ],
+  "warnings": []
+}
