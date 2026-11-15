@@ -2,13 +2,14 @@
 
 > Detect dangerous database schema changes before they reach production.
 
-![status](https://img.shields.io/badge/status-M2_comparison-orange)
+![status](https://img.shields.io/badge/status-M3_classification-orange)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.12+-3776AB?logo=python&logoColor=white)
 
-**Status: M2 complete and merged into main.** SchemaSentry captures read-only PostgreSQL snapshots and
-compares tables, columns, constraints and indexes with deterministic JSON output. Risk rules, scoring,
-migration prediction and Markdown reports remain later milestones.
+**Status: M3 implemented and locally verified on `feat/m3-implementation`; CI pending.**
+SchemaSentry captures read-only PostgreSQL snapshots, compares their structure and provides internal
+classification rules SS001–SS007 with bounded SQL evidence and explicit rename hints.
+Risk scoring, public classification reports and migration-to-snapshot prediction remain later milestones.
 
 ## Why this exists
 
@@ -23,11 +24,13 @@ before the migration runs.
 |---|---|---|
 | Capture a schema snapshot | M1 | **Done** |
 | Compare schema snapshots | M2 | **Done (merged)** |
-| Detect dropped columns and tables | M3 | Not started |
-| Detect incompatible type changes | M3 | Not started |
-| Flag potentially locking migrations | M3 | Not started |
-| Detect missing indexes | M4 | Not started |
-| Identify nullable/non-nullable changes | M3 | Not started |
+| Classify removed columns, including removed-table columns | M3 | **Implemented (internal API)** |
+| Classify incompatible type changes | M3 | **Implemented (internal API)** |
+| Separate declared DDL locks, scans and rewrites | M3 | **Implemented (internal API)** |
+| Flag FK columns without proven supporting index coverage | M3 | **Implemented (internal API)** |
+| Classify NOT NULL additions using validated evidence | M3 | **Implemented (internal API)** |
+| Validate explicit column rename hints | M3 | **Implemented (internal API)** |
+| Distinguish known volatile defaults from unknown functions | M3 | **Implemented (internal API)** |
 | Estimate migration risk | M4 | Not started |
 | Markdown and JSON reports | M4 | Not started |
 | GitHub Actions integration | M5 | Not started |
@@ -38,16 +41,16 @@ before the migration runs.
 
 ```mermaid
 flowchart LR
-    DB[(Database)] --> INTRO[Schema introspection]
-    MIG[Migration files] --> PARSE[Migration parser]
-    INTRO --> NORM[Normalised schema]
-    PARSE --> NORM2[Normalised schema]
-    NORM --> CMP[Schema comparator]
-    NORM2 --> CMP
-    CMP --> CLASS[Change classification]
-    CLASS --> RISK[Risk scoring engine]
-    RISK --> REP[Migration report]
-    REP --> CI[CI pipeline result]
+    DB[(Database)] --> INTRO[Read-only capture]
+    INTRO --> SNAP[Before and after snapshots]
+    SNAP --> CMP[Structural comparator]
+    SNAP --> CLASS[Internal SS001-SS007 classification]
+    CMP --> CLASS
+    MIG[Migration file] --> PARSE[Bounded SQL evidence]
+    PARSE --> CLASS
+    HINT[JSON rename hints] --> VALIDATE[One-to-one validation]
+    VALIDATE --> CLASS
+    CLASS -. M4 .-> RISK[Risk scoring and public reports]
 ```
 
 Full reasoning, data model, API surface and failure behaviour are in [docs/PLAN.md](docs/PLAN.md).
@@ -147,7 +150,7 @@ schemasentry snapshot --captured-at 2026-11-13T10:00:00Z --output snapshot.json
 ```
 
 `SOURCE_DATE_EPOCH` works too. Exit codes: `0` success, `3` tool error (connection, unsupported server
-version), `4` invalid usage. Codes `1` and `2` belong to the risk milestones and remain unreachable in M2.
+version), `4` invalid usage. Codes `1` and `2` belong to M4 and remain unreachable through M3.
 
 Compare two snapshots offline:
 
@@ -166,35 +169,72 @@ PostgreSQL 13/15/16 cases. [Validation results](docs/testing/m1-m2-validation.md
 Install hashed runtime dependencies with `pip install --require-hashes -r requirements.lock`, then
 install development tools with `pip install -e ".[dev]"`. CI and the runtime image use this lock.
 
+## Internal M3 classification
+
+M3 adds a library API; the `diff` command retains its structural output and exit behavior:
+
+```python
+from pathlib import Path
+
+from schemasentry.classification import classify
+from schemasentry.diff import load_snapshot
+from schemasentry.hints import load_hints
+from schemasentry.migration import load_migration
+
+result = classify(
+    load_snapshot(Path("before.json")),
+    load_snapshot(Path("after.json")),
+    migration=load_migration(Path("migration.sql")),  # parsed as data
+    hints=load_hints(Path("hints.json")),             # optional strict JSON v1
+    default_schema="public",                        # explicit binding for unqualified SQL
+)
+print(result.model_dump_json(indent=2))
+```
+
+Omit optional migration or hints arguments when absent. Missing or unsupported evidence produces
+notices; hints declare a rename without proving data preservation. SQL files are capped at 256 KiB,
+128 statements, 20,000 tokens and nesting 64. Hint files are capped at 64 KiB and 128 mappings.
+Findings contain base severity, confidence, evidence and limitations, with separate lock/scan/rewrite
+effects when supported. Confirmed effects use matching PostgreSQL 13/15/16 version evidence;
+unknown casts, functions and uncaptured table properties remain uncertain. No duration is predicted.
+See [ADR 0004](docs/adr/0004-m3-classification-evidence.md) and the
+[M3 validation record](docs/testing/m3-validation.md) for 59 reviewed cases, live evidence and skips.
+
 ## Repository layout
 
 | Path | Purpose |
 |---|---|
 | `src/schemasentry/cli.py` | Typer commands: snapshot, diff, version |
 | `src/schemasentry/diff.py` | Pure structural comparator and bounded snapshot loader |
+| `src/schemasentry/classification.py` | Internal deterministic SS001–SS007 classification |
+| `src/schemasentry/evidence.py` | Frozen findings, notices and separate operation effects |
+| `src/schemasentry/migration.py` | Bounded SQL evidence parser; never executes migration input |
+| `src/schemasentry/hints.py` | Strict JSON v1 column rename declarations |
 | `src/schemasentry/config.py` | Environment variables, timestamp resolution, DSN redaction |
 | `src/schemasentry/db.py` | Read-only connection, statement timeout |
 | `src/schemasentry/introspect.py` | Capture orchestration: connect, dialect, snapshot |
 | `src/schemasentry/snapshot.py` | Snapshot model, deterministic ordering and serialisation |
 | `src/schemasentry/dialects` | One module per engine; PostgreSQL implemented, MySQL in M6 |
-| `src/schemasentry/rules` | One module per rule id (M3; empty today) |
+| `src/schemasentry/rules` | Fixed SS001–SS007 registry and conditional PostgreSQL semantics |
 | `src/schemasentry/report` | Markdown and JSON renderers (M4; empty today) |
 | `docs/schema` | Committed JSON schemas, enforced by tests |
 | `tests/unit` | Model, configuration and CLI tests, no database needed |
 | `tests/integration` | Tests against a real PostgreSQL server |
-| `tests/corpus` | Golden migration cases, the accuracy contract (empty until M3) |
+| `tests/corpus` | 59 independently reviewed M3 classification cases |
+| `scripts/profile_m3.py` | Repeated synthetic parser/diff/classifier memory workload |
 | `action` | GitHub Action wrapper (M5) |
 
 ## Roadmap
 
-M3 is **Not started**. Read the [M3 requirements and acceptance gates](docs/phases/M3.md)
-before implementation and the [development-tool audit](docs/DEVELOPMENT-TOOLS.md) before debugging.
+M3 is **implemented and locally verified; CI pending**. Read the
+[M3 acceptance gates](docs/phases/M3.md), [validation record](docs/testing/m3-validation.md)
+and [development-tool audit](docs/DEVELOPMENT-TOOLS.md) before debugging.
 
 | Milestone | Deliverable | Status |
 |---|---|---|
 | M1 | PostgreSQL introspection and normalised snapshot format | **Done** (v0.1.0) |
 | M2 | Snapshot storage and structural comparison | **Done (merged)** |
-| M3 | Change classification rules SS001-SS007 | Not started |
+| M3 | Internal classification rules SS001-SS007 | **Implemented; CI pending** |
 | M4 | Risk scoring, Markdown and JSON reports, exit codes | Not started |
 | M5 | GitHub Action and CI integration | Not started |
 | M6 | MySQL support and migration performance analysis | Not started |

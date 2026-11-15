@@ -12,7 +12,7 @@ depends_on:
   - PostgreSQL 13+ (first supported dialect)
   - Python 3.12+
 created: 2026-11-13
-updated: 2026-11-14
+updated: 2026-11-15
 ---
 
 # SchemaSentry — Implementation Plan
@@ -23,18 +23,19 @@ updated: 2026-11-14
 
 ## 0. Machine context
 
-M2 is complete and merged into `main`; M3 is **Not started**. The
-[M3 requirements](phases/M3.md) clarify this plan's next phase and its acceptance gates.
-Resolve the listed ADR decisions before dependent implementation. The
-[development-tool audit](DEVELOPMENT-TOOLS.md) records actual coverage and profiling limits.
-This preparation changes documentation only; it does not establish any M3 behavior or release.
+M2 is complete and merged into `main`; M3 is **implemented and locally verified; CI pending** on
+`feat/m3-implementation`. [ADR 0004](adr/0004-m3-classification-evidence.md) defines the internal
+evidence API. The [M3 requirements](phases/M3.md) and [validation record](testing/m3-validation.md)
+record 59 reviewed cases, live PG13/15/16 evidence and canonical local gates.
+The [development-tool audit](DEVELOPMENT-TOOLS.md) records profiling limits. No M3 release or merge
+is claimed; public reports and risk scoring remain M4.
 
 ```yaml
 project: SchemaSentry
 status: mvp
 version: 0.1.0
 builds: true
-functional: partial            # M1/M2 work; classification and risk scoring remain
+functional: partial            # M1/M2 and internal M3 work; public risk/report flow remains M4
 
 implemented:
   - typer cli with version, snapshot and structural diff
@@ -49,14 +50,18 @@ implemented:
   - read-only REPEATABLE READ capture and full index ordering/collation/opclass metadata
   - hashed runtime dependencies and feature-branch CI
   - exit codes 0, 3 and 4 (1 and 2 belong to the risk milestones)
+  - internal deterministic classification registry SS001-SS007 with evidence and limitations
+  - bounded SQLGlot PostgreSQL evidence parser with visible unsupported/errors and no SQL execution
+  - strict JSON v1 one-to-one column rename hints inside classification
+  - 59 reviewed corpus cases and disposable live PG13/15/16 classification evidence
+  - native Python lifecycle profiling and installed Docker runtime checks
 
 not_implemented:
-  - classification rules
   - risk scoring
-  - markdown and json reports
-  - explain and rules commands
-  - migration parsing (sqlglot)
-  - hints and rename support
+  - public markdown and json classification reports
+  - compare, explain and rules commands
+  - migration-to-snapshot prediction and broader parser integration
+  - ownership hints and hint format v2
   - github action
   - mysql support
 
@@ -291,8 +296,9 @@ schemasentry version
 logs. The tool opens a read-only transaction and sets `statement_timeout = 5s`.
 
 Implemented in M2: `snapshot`, `diff --before FILE --after FILE` and `version`. Diff prints structural
-JSON and exits 0 even with changes. Classification, thresholds and richer reports remain M3/M4; codes
-1 and 2 are unreachable in M2. Input is capped at 64 MiB; malformed/ambiguous input exits 3.
+JSON and exits 0 even with changes. M3 classification is an internal library API; thresholds and
+public reports remain M4, and codes 1 and 2 are unreachable through M3. Input is capped at 64 MiB;
+malformed/ambiguous input exits 3. See [M3 validation](testing/m3-validation.md) for the evidence API.
 
 ---
 
@@ -421,17 +427,23 @@ baseline. PG13 remains compatibility coverage, not a recommendation to deploy an
 
 **Deliverable:** rules SS001–SS007, validated rename hints and minimal SQL evidence parsing with corpus cases.
 
-Status: **Not started**. Follow [M3 requirements](phases/M3.md); public reports and thresholds remain M4.
+Status: **Implemented and locally verified; CI pending** on `feat/m3-implementation`.
+Follow [M3 requirements](phases/M3.md) and [ADR 0004](adr/0004-m3-classification-evidence.md);
+public reports and thresholds remain M4. SS-013–SS-020, including SS-013A, are implemented.
 
 **Acceptance criteria**
 
-- [ ] Every rule has at least 3 corpus cases: one positive, one negative, one edge
-- [ ] SS002 type matrix implemented exactly as specified in section 9
-- [ ] SS006 requires a hint file; without one it reports both drop and add
-- [ ] Unanalysable statements are reported, never silently ignored
-- [ ] Corpus suite runs in under 60 s
-- [ ] NOT NULL/default/volatility evidence and version caveats are covered without guessing
-- [ ] Existing structural `diff` JSON and exit 0 remain unchanged
+- [x] Every rule has at least 3 corpus cases: one positive, one negative, one edge
+- [x] SS002 type matrix implemented with section 9's policy and ADR 0004's evidence prerequisites
+- [x] SS006 requires explicit hints; without them structural drop/add remains and SS001 classifies removal
+- [x] Unanalysable statements are reported, never silently ignored
+- [x] Corpus suite runs in under 60 s
+- [x] NOT NULL/default/volatility evidence and version caveats are covered without guessing
+- [x] Existing structural `diff` JSON and exit 0 remain unchanged
+
+[M3 validation](testing/m3-validation.md) maps each gate to its tests. Native `make test` passed with
+279 tests, 8 intentional offline skips and 92% coverage in 46.48 s. Live PG13.23/15.20/16.16 suites
+each passed 68 tests with the same 8 offline skips. Lint, types, build, audit and runtime smoke passed.
 
 ### M4 — Risk scoring and reports
 
@@ -586,7 +598,8 @@ no classification rule, risk score, Markdown report or migration corpus case.
 ## 17. Handoff protocol
 
 1. Read sections 0, 3 and 9.
-2. `make bootstrap && make test`. Existing snapshot/diff suites should pass; M3 classification is not implemented.
-3. M1/M2 are merged. Read [M3 requirements](phases/M3.md), start at SS-013/SS-013A and add corpus cases first.
+2. Run `make bootstrap`, `make test`, `make lint` and `make type`; use a disposable server for live evidence.
+3. M1/M2 are merged and M3 is implemented locally. Read [M3 requirements](phases/M3.md),
+   [ADR 0004](adr/0004-m3-classification-evidence.md) and [validation](testing/m3-validation.md) before M4 work.
 4. Before changing a rule, add the corpus case that proves the change.
 5. If a finding is wrong, the fix is a new case plus a rule change — never a special case in the renderer.
