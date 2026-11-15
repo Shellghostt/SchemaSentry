@@ -1,0 +1,25 @@
+{
+  "ruleId": "SS005",
+  "category": "positive",
+  "findings": [
+    {
+      "schema": "ss_m3_0034",
+      "table": "items",
+      "object": "items",
+      "kind": "vacuum_full",
+      "baseSeverity": "high",
+      "confidence": "high",
+      "effects": {
+        "lockLevel": "access_exclusive",
+        "scan": "required",
+        "rewrite": "required"
+      }
+    }
+  ],
+  "statementStatuses": [
+    "supported"
+  ],
+  "hintError": false,
+  "live": true,
+  "migrationError": null
+}

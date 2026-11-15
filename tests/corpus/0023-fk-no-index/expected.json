@@ -1,0 +1,20 @@
+{
+  "ruleId": "SS004",
+  "category": "positive",
+  "findings": [
+    {
+      "schema": "ss_m3_0023",
+      "table": "child",
+      "object": "child_fk",
+      "kind": "foreign_key_index_unproven",
+      "baseSeverity": "medium",
+      "confidence": "high"
+    }
+  ],
+  "statementStatuses": [
+    "unsupported"
+  ],
+  "hintError": false,
+  "live": true,
+  "migrationError": null
+}

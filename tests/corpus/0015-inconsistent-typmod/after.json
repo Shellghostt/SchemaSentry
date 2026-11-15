@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "dialect": "postgres",
+  "serverVersion": "16.16",
+  "capturedAt": "2026-11-13T10:00:00Z",
+  "database": "schemasentry",
+  "schemas": [
+    "ss_m3_0015"
+  ],
+  "tables": [
+    {
+      "schema": "ss_m3_0015",
+      "name": "items",
+      "rowEstimate": null,
+      "totalBytes": 0,
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 1,
+          "type": "integer",
+          "normalisedType": "integer",
+          "length": null,
+          "nullable": false,
+          "default": null,
+          "identity": false,
+          "generated": null,
+          "generationExpression": null
+        },
+        {
+          "name": "body",
+          "ordinal": 2,
+          "type": "character varying(100)",
+          "normalisedType": "varchar",
+          "length": 100,
+          "nullable": true,
+          "default": null,
+          "identity": false,
+          "generated": null,
+          "generationExpression": null
+        }
+      ],
+      "constraints": [],
+      "indexes": []
+    }
+  ],
+  "sequences": [],
+  "extensions": [
+    "plpgsql"
+  ]
+}

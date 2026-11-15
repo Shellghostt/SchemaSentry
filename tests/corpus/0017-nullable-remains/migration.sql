@@ -1,0 +1,1 @@
+ALTER TABLE ss_m3_0017.items ALTER COLUMN body SET DEFAULT 'new';

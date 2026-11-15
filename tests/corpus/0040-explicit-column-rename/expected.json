@@ -1,0 +1,20 @@
+{
+  "ruleId": "SS006",
+  "category": "positive",
+  "findings": [
+    {
+      "schema": "ss_m3_0040",
+      "table": "items",
+      "object": "message",
+      "kind": "column_rename_declared",
+      "baseSeverity": "high",
+      "confidence": "high"
+    }
+  ],
+  "statementStatuses": [
+    "supported"
+  ],
+  "hintError": false,
+  "live": true,
+  "migrationError": null
+}

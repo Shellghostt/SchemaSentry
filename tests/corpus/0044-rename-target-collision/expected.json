@@ -1,0 +1,11 @@
+{
+  "ruleId": "SS006",
+  "category": "edge",
+  "findings": [],
+  "statementStatuses": [
+    "supported"
+  ],
+  "hintError": true,
+  "live": true,
+  "migrationError": null
+}

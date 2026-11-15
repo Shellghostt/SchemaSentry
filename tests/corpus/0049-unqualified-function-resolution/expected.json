@@ -1,0 +1,20 @@
+{
+  "ruleId": "SS007",
+  "category": "edge",
+  "findings": [
+    {
+      "schema": "ss_m3_0049",
+      "table": "items",
+      "object": "value",
+      "kind": "default_volatility_unknown",
+      "baseSeverity": "medium",
+      "confidence": "low"
+    }
+  ],
+  "statementStatuses": [
+    "supported"
+  ],
+  "hintError": false,
+  "live": true,
+  "migrationError": null
+}

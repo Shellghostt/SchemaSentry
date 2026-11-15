@@ -1,0 +1,1 @@
+ALTER TABLE ss_m3_0044.items DROP COLUMN body;

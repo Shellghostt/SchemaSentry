@@ -1,0 +1,20 @@
+{
+  "ruleId": "SS004",
+  "category": "edge",
+  "findings": [
+    {
+      "schema": "ss_m3_0029",
+      "table": "child",
+      "object": "child_fk",
+      "kind": "foreign_key_index_unproven",
+      "baseSeverity": "medium",
+      "confidence": "high"
+    }
+  ],
+  "statementStatuses": [
+    "unsupported"
+  ],
+  "hintError": false,
+  "live": true,
+  "migrationError": null
+}

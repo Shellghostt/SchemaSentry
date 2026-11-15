@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "dialect": "postgres",
+  "serverVersion": "16.16",
+  "capturedAt": "2026-11-13T10:00:00Z",
+  "database": "schemasentry",
+  "schemas": [
+    "ss_m3_0033"
+  ],
+  "tables": [
+    {
+      "schema": "ss_m3_0033",
+      "name": "parent",
+      "rowEstimate": null,
+      "totalBytes": 0,
+      "columns": [
+        {
+          "name": "a",
+          "ordinal": 1,
+          "type": "integer",
+          "normalisedType": "integer",
+          "length": null,
+          "nullable": true,
+          "default": null,
+          "identity": false,
+          "generated": null,
+          "generationExpression": null
+        },
+        {
+          "name": "b",
+          "ordinal": 2,
+          "type": "integer",
+          "normalisedType": "integer",
+          "length": null,
+          "nullable": true,
+          "default": null,
+          "identity": false,
+          "generated": null,
+          "generationExpression": null
+        }
+      ],
+      "constraints": [
+        {
+          "name": "parent_pkey",
+          "kind": "primary_key",
+          "columns": [
+            "a",
+            "b"
+          ],
+          "definition": "PRIMARY KEY (a,b)",
+          "referencedTable": null,
+          "referencedColumns": []
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "schema": "ss_m3_0033",
+      "name": "child",
+      "rowEstimate": null,
+      "totalBytes": 0,
+      "columns": [
+        {
+          "name": "a",
+          "ordinal": 1,
+          "type": "integer",
+          "normalisedType": "integer",
+          "length": null,
+          "nullable": true,
+          "default": null,
+          "identity": false,
+          "generated": null,
+          "generationExpression": null
+        },
+        {
+          "name": "b",
+          "ordinal": 2,
+          "type": "integer",
+          "normalisedType": "integer",
+          "length": null,
+          "nullable": true,
+          "default": null,
+          "identity": false,
+          "generated": null,
+          "generationExpression": null
+        }
+      ],
+      "constraints": [
+        {
+          "name": "child_fk",
+          "kind": "foreign_key",
+          "columns": [
+            "a",
+            "b"
+          ],
+          "definition": "FOREIGN KEY (a, b) REFERENCES ss_m3_0033.parent(a, b)",
+          "referencedTable": "ss_m3_0033.parent",
+          "referencedColumns": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "support",
+          "columns": [
+            "b",
+            "a"
+          ],
+          "unique": false,
+          "method": "btree",
+          "predicate": null,
+          "valid": true,
+          "expression": null,
+          "keys": [
+            "b",
+            "a"
+          ],
+          "includedColumns": []
+        }
+      ]
+    }
+  ],
+  "sequences": [],
+  "extensions": [
+    "plpgsql"
+  ]
+}

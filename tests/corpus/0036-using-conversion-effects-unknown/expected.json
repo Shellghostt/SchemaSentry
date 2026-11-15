@@ -1,0 +1,25 @@
+{
+  "ruleId": "SS005",
+  "category": "edge",
+  "findings": [
+    {
+      "schema": "ss_m3_0036",
+      "table": "items",
+      "object": "body",
+      "kind": "alter_type",
+      "baseSeverity": "high",
+      "confidence": "low",
+      "effects": {
+        "lockLevel": "access_exclusive",
+        "scan": "unknown",
+        "rewrite": "unknown"
+      }
+    }
+  ],
+  "statementStatuses": [
+    "supported"
+  ],
+  "hintError": false,
+  "live": true,
+  "migrationError": null
+}

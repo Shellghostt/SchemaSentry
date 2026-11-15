@@ -1,0 +1,28 @@
+{
+  "ruleId": "SS001",
+  "category": "edge",
+  "findings": [
+    {
+      "schema": "ss_m3_0003",
+      "table": "items",
+      "object": "body",
+      "kind": "column_removed",
+      "baseSeverity": "critical",
+      "confidence": "high"
+    },
+    {
+      "schema": "ss_m3_0003",
+      "table": "items",
+      "object": "id",
+      "kind": "column_removed",
+      "baseSeverity": "critical",
+      "confidence": "high"
+    }
+  ],
+  "statementStatuses": [
+    "unsupported"
+  ],
+  "hintError": false,
+  "live": true,
+  "migrationError": null
+}
