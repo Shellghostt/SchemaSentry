@@ -6,7 +6,7 @@
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.12+-3776AB?logo=python&logoColor=white)
 
-**Status: M2 complete locally (unreleased).** SchemaSentry captures read-only PostgreSQL snapshots and
+**Status: M2 complete and merged into main.** SchemaSentry captures read-only PostgreSQL snapshots and
 compares tables, columns, constraints and indexes with deterministic JSON output. Risk rules, scoring,
 migration prediction and Markdown reports remain later milestones.
 
@@ -22,7 +22,7 @@ before the migration runs.
 | Capability | Milestone | Status |
 |---|---|---|
 | Capture a schema snapshot | M1 | **Done** |
-| Compare schema snapshots | M2 | **Done (unreleased)** |
+| Compare schema snapshots | M2 | **Done (merged)** |
 | Detect dropped columns and tables | M3 | Not started |
 | Detect incompatible type changes | M3 | Not started |
 | Flag potentially locking migrations | M3 | Not started |
@@ -187,10 +187,13 @@ install development tools with `pip install -e ".[dev]"`. CI and the runtime ima
 
 ## Roadmap
 
+M3 is **Not started**. Read the [M3 requirements and acceptance gates](docs/phases/M3.md)
+before implementation and the [development-tool audit](docs/DEVELOPMENT-TOOLS.md) before debugging.
+
 | Milestone | Deliverable | Status |
 |---|---|---|
 | M1 | PostgreSQL introspection and normalised snapshot format | **Done** (v0.1.0) |
-| M2 | Snapshot storage and structural comparison | **Done (unreleased)** |
+| M2 | Snapshot storage and structural comparison | **Done (merged)** |
 | M3 | Change classification rules SS001-SS007 | Not started |
 | M4 | Risk scoring, Markdown and JSON reports, exit codes | Not started |
 | M5 | GitHub Action and CI integration | Not started |

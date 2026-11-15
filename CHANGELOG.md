@@ -9,6 +9,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
+- [M3 requirements](docs/phases/M3.md) with phase boundaries, failure cases, ADR prerequisites and
+  acceptance gates, plus a [development-tool audit](docs/DEVELOPMENT-TOOLS.md). M3 is not implemented.
+
 - M2 structural `diff` command, 30 golden snapshot pairs and exact CLI/schema checks.
 - Constraint definitions and index key/include evidence, including native ordering flags,
   collation and opclass. Legacy snapshots warn when evidence is missing.

@@ -23,6 +23,12 @@ updated: 2026-11-14
 
 ## 0. Machine context
 
+M2 is complete and merged into `main`; M3 is **Not started**. The
+[M3 requirements](phases/M3.md) clarify this plan's next phase and its acceptance gates.
+Resolve the listed ADR decisions before dependent implementation. The
+[development-tool audit](DEVELOPMENT-TOOLS.md) records actual coverage and profiling limits.
+This preparation changes documentation only; it does not establish any M3 behavior or release.
+
 ```yaml
 project: SchemaSentry
 status: mvp
@@ -296,16 +302,16 @@ Stable ids. One page each in `docs/rules/`. Every rule has at least one corpus c
 
 | ID | Detects | Base severity | Notes |
 |---|---|---|---|
-| SS001 | Column removed | critical | Always breaks readers older than the deploy |
+| SS001 | Column removed | critical | Breaks readers still referencing that column |
 | SS002 | Column type changed | high | Some changes are safe; see table below |
-| SS003 | NOT NULL added without a default | high | Full scan under ACCESS EXCLUSIVE unless `NOT VALID` |
+| SS003 | NOT NULL added without validated evidence that existing rows satisfy it | high | Defaults are not proof; validated CHECK evidence can avoid a scan on supported versions |
 | SS004 | Missing index on a foreign key | medium | Scaled by table size; write-path amplification |
 | SS005 | Locking or rewriting statement | high | `ALTER TYPE`, `SET NOT NULL`, `ADD COLUMN ... DEFAULT`, `VACUUM FULL` |
 | SS006 | Rename appearing as drop + add | high | Requires a rename hint file, otherwise data loss risk |
-| SS007 | Volatile or non-constant default | medium | Volatile default rewrites the table on PG < 11 and forces a scan |
-| SS008 | Constraint added without `NOT VALID` | medium | `VALIDATE CONSTRAINT` can be run separately |
-| SS009 | Index created without `CONCURRENTLY` | medium | Blocks writes for the duration of the build |
-| SS010 | Enum value removed or renamed | high | Values cannot be removed in PostgreSQL |
+| SS007 | Known volatile default or unknown function volatility | medium | Nonliteral does not imply volatile; PG11+ non-volatile ADD COLUMN defaults can avoid rewrite |
+| SS008 | Constraint added without `NOT VALID` | medium | M4; supported CHECK/FK constraints can be validated separately |
+| SS009 | Index created without `CONCURRENTLY` | medium | M4; blocks writes for the duration of the build |
+| SS010 | Enum value removed or renamed | high | M4; PostgreSQL has no direct enum-value removal operation |
 
 **Type-change nuance for SS002** (the rule must not cry wolf):
 
@@ -317,7 +323,10 @@ Stable ids. One page each in `docs/rules/`. Every rule has at least one corpus c
 | `bigint` → `int` | high, overflow risk |
 | `text` → `varchar(n)` | high, needs validation query |
 | `timestamp` → `timestamptz` | high, silent timezone reinterpretation |
-| `numeric(p,s)` widening | medium, rewrite |
+| `numeric(p,s)` widening | medium; conversion/scan/rewrite depends on typmod and server evidence |
+
+Base severities are policy; cast/lock/rewrite claims require version-specific evidence. USING expressions,
+unknown types and user-function volatility must not be treated as safe by inference. See [M3 requirements](phases/M3.md).
 
 **Risk scoring.** `risk = max(base severity, size modifier, lock modifier)`, then one level up if the object is
 referenced by a foreign key or a unique constraint.
@@ -335,7 +344,8 @@ referenced by a foreign key or a unique constraint.
 **Every finding carries a `safeAlternative`** where one exists:
 
 - SS001 → expand/contract: stop reading the column, deploy, then drop in a later migration.
-- SS003 → `ADD CONSTRAINT ... NOT VALID` then `VALIDATE CONSTRAINT`.
+- SS003 → add a CHECK `(column IS NOT NULL) NOT VALID`, validate it, then SET NOT NULL where the
+  server can use that proof. NOT VALID cannot be applied directly to NOT NULL; document locks per step.
 - SS009 → `CREATE INDEX CONCURRENTLY`.
 - SS006 → rename hint file, or expand/contract.
 
@@ -400,13 +410,18 @@ difference in how an unanalysed table reports its row estimate.
 - [x] 20 fixture pairs with expected change sets, all passing
 - [x] Comparison of a 500-table snapshot completes in under 10 s
 
-M2 is complete locally and unreleased. Thirty pairs, real CLI/schema tests and live PG 13/15/16
+M2 is complete and merged into `main`. Thirty pairs, real CLI/schema tests and live PG 13/15/16
 checks pass. See ADR 0003 and docs/testing/m1-m2-validation.md. Diff compares tables/columns/constraints/
 indexes; sequences, extensions, capture scope and uncaptured table properties remain outside this milestone.
 
+Main CI [43553918501](https://github.com/shellghostt/schemasentry/actions/runs/43553918501) passed for this
+baseline. PG13 remains compatibility coverage, not a recommendation to deploy an upstream unsupported version.
+
 ### M3 — Classification rules
 
-**Deliverable:** rules SS001–SS007 with corpus cases.
+**Deliverable:** rules SS001–SS007, validated rename hints and minimal SQL evidence parsing with corpus cases.
+
+Status: **Not started**. Follow [M3 requirements](phases/M3.md); public reports and thresholds remain M4.
 
 **Acceptance criteria**
 
@@ -415,10 +430,12 @@ indexes; sequences, extensions, capture scope and uncaptured table properties re
 - [ ] SS006 requires a hint file; without one it reports both drop and add
 - [ ] Unanalysable statements are reported, never silently ignored
 - [ ] Corpus suite runs in under 60 s
+- [ ] NOT NULL/default/volatility evidence and version caveats are covered without guessing
+- [ ] Existing structural `diff` JSON and exit 0 remain unchanged
 
 ### M4 — Risk scoring and reports
 
-**Deliverable:** risk levels, Markdown and JSON reports, exit codes, `explain`.
+**Deliverable:** rules SS008–SS010, risk levels, Markdown and JSON reports, exit codes, `compare` and `explain`.
 
 **Acceptance criteria**
 
@@ -471,19 +488,21 @@ indexes; sequences, extensions, capture scope and uncaptured table properties re
 | SS-011 | Constraint and index diff | SS-009 | M2 |
 | SS-012 | Fixture pairs and golden diff tests | SS-010 | M2 |
 | SS-013 | Rule framework + registry | SS-010 | M3 |
+| SS-013A | Minimal SQL evidence parser with explicit unsupported results | SS-013 | M3 |
 | SS-014 | SS001 drop column | SS-013 | M3 |
 | SS-015 | SS002 type change matrix | SS-013 | M3 |
-| SS-016 | SS003 not-null without default | SS-013 | M3 |
+| SS-016 | SS003 not-null with validated-row evidence | SS-013 | M3 |
 | SS-017 | SS004 missing fk index | SS-013 | M3 |
-| SS-018 | SS005 locking statements | SS-013 | M3 |
+| SS-018 | SS005 locking statements | SS-013A | M3 |
 | SS-019 | SS006 rename hints | SS-013 | M3 |
-| SS-020 | SS007 volatile default | SS-013 | M3 |
+| SS-020 | SS007 default volatility/version evidence | SS-013A | M3 |
+| SS-020A | SS008–SS010 constraints/indexes/enums and corpus cases | SS-020 | M4 |
 | SS-021 | Risk scoring engine | SS-014 | M4 |
 | SS-022 | Markdown renderer | SS-021 | M4 |
 | SS-023 | JSON renderer and determinism tests | SS-021 | M4 |
 | SS-024 | `explain` command and rule docs | SS-013 | M4 |
 | SS-025 | Corpus expansion to 60 cases | SS-020 | M4 |
-| SS-026 | Migration parser (sqlglot) | SS-009 | M5 |
+| SS-026 | Broader migration parser integration for CI (minimal parser is SS-013A) | SS-013A | M5 |
 | SS-027 | GitHub Action and PR comment | SS-022 | M5 |
 | SS-028 | Baseline convention and docs | SS-027 | M5 |
 | SS-029 | MySQL dialect | SS-009 | M6 |
@@ -567,7 +586,7 @@ no classification rule, risk score, Markdown report or migration corpus case.
 ## 17. Handoff protocol
 
 1. Read sections 0, 3 and 9.
-2. `make bootstrap && make test`. The corpus suite should be green and empty.
-3. M1/M2 are complete locally. Start M3 at SS-013; add corpus cases before classification rules.
+2. `make bootstrap && make test`. Existing snapshot/diff suites should pass; M3 classification is not implemented.
+3. M1/M2 are merged. Read [M3 requirements](phases/M3.md), start at SS-013/SS-013A and add corpus cases first.
 4. Before changing a rule, add the corpus case that proves the change.
 5. If a finding is wrong, the fix is a new case plus a rule change — never a special case in the renderer.

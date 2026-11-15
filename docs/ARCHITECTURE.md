@@ -1,6 +1,6 @@
 # SchemaSentry Architecture
 
-**Status: M2 complete locally, unreleased.** Read-only introspection feeds deterministic snapshots;
+**Status: M2 complete and merged into main.** Read-only introspection feeds deterministic snapshots;
 offline structural comparison produces JSON changes. Risk classification, scoring, SQL prediction
 and richer reports remain planned. [PLAN.md](PLAN.md) is authoritative; [ADR 0003](adr/0003-m2-structural-comparison.md)
 records comparison semantics and evidence limits.
@@ -39,3 +39,8 @@ failure behaviour of each stage.
 
 See [PLAN.md](PLAN.md) section 4 (non-goals). If a component is not on that diagram, it is not part of the
 design.
+
+## M3 preparation
+
+M3 is **Not started**. Read [phase requirements](phases/M3.md) for planned contracts,
+ADR decisions and acceptance gates, and [development tools](DEVELOPMENT-TOOLS.md) for actual coverage.
