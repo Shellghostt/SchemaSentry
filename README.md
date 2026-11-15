@@ -185,8 +185,8 @@ result = classify(
     load_snapshot(Path("before.json")),
     load_snapshot(Path("after.json")),
     migration=load_migration(Path("migration.sql")),  # parsed as data
-    hints=load_hints(Path("hints.json")),             # optional strict JSON v1
-    default_schema="public",                        # explicit binding for unqualified SQL
+    hints=load_hints(Path("hints.json")),  # optional strict JSON v1
+    default_schema="public",  # explicit binding for unqualified SQL
 )
 print(result.model_dump_json(indent=2))
 ```

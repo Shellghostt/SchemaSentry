@@ -29,6 +29,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 - Canonical Make targets select the Windows/POSIX virtualenv interpreter directly and quote its path;
   lint checks formatting as well as diagnostics. SQLGlot's declaration matches the reviewed 30.31 series.
+- Ruff explicitly recognizes the package as first-party, keeping test imports consistent before and
+  after new module files exist.
 - Snapshot capture now uses a read-only REPEATABLE READ transaction for a consistent catalog view.
 - Diff output is UTF-8/LF on Windows pipes. Snapshot input rejects ambiguous JSON fields,
   non-integer versions and duplicate object identities. Feature branches trigger CI.

@@ -10,12 +10,12 @@ from typing import Any
 
 import psycopg
 import pytest
-from schemasentry.classification import classify
-from schemasentry.hints import load_hints
-from schemasentry.migration import MAX_SQL_BYTES, load_migration, parse_migration
 
+from schemasentry.classification import classify
 from schemasentry.diff import compare, comparison_json, load_snapshot
 from schemasentry.errors import ToolError
+from schemasentry.hints import load_hints
+from schemasentry.migration import MAX_SQL_BYTES, load_migration, parse_migration
 from schemasentry.rules import rule_metadata
 from schemasentry.snapshot import Snapshot, to_json
 

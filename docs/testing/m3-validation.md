@@ -29,12 +29,13 @@ that reviewed parser API. PyYAML remains declared but unused by the initial stri
 
 | Check | Result |
 |---|---|
-| M3 unit corpus and defensive evidence tests | 104 passed in 2.61 s |
+| M3 unit corpus and defensive evidence tests | 104 passed in 2.61 s; repeated after the CI import correction, 104 passed in 2.28 s |
 | PG16.16 `make integration` | 68 passed, 8 intentionally offline cases skipped, 10.15 s |
 | PG15.20 `make integration` | 68 passed, 8 intentionally offline cases skipped, 6.98 s |
 | PG13.23 `make integration` | 68 passed, 8 intentionally offline cases skipped, 7.85 s |
 | Full native `make test`, PG16.16, with coverage | 279 passed, 8 skipped in 46.48 s; 92% statement coverage |
-| Final `make lint` | Passed: Ruff checks and format check; 115 files already formatted |
+| Final `make lint` | Passed: Ruff checks and format check; 116 files already formatted |
+| `ruff check --no-cache .` and `ruff format --check --no-cache .` | Passed after the CI import correction and README example formatting |
 | `make type` | Passed: all 26 source files |
 | `uv build` | Built wheel and source distribution |
 | `uvx pip-audit --strict --disable-pip --require-hashes -r requirements.lock` | No known vulnerabilities found |
@@ -118,6 +119,13 @@ Java heap analyzers were not used as Python gates.
 - Unit and integration tests initially shared `test_classification.py`, causing full-suite import
   collection to fail. The integration file is now `test_m3_corpus.py`; all three server suites and
   the full native suite passed with that name.
+- [First branch CI 43741791886](https://github.com/Shellghostt/SchemaSentry/actions/runs/43741791886)
+  passed all three PostgreSQL jobs and the dependency audit, but both Python jobs stopped at Ruff
+  import ordering. A cached native result had missed the grouping change after new modules were added;
+  `ruff check --no-cache .` reproduced it. Test imports were reordered and `schemasentry` declared
+  explicitly as first-party for consistent classification, including before new module files exist.
+  The README Python example was normalized by the same format contract. Canonical and uncached
+  lint/format checks then passed, and all 104 focused M3 tests passed again.
 
 ## Reproduction
 
