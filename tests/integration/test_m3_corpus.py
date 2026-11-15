@@ -1,4 +1,4 @@
-"""Apply committed synthetic corpus SQL only inside a newly created disposable database."""
+"""Live M3 corpus: apply committed synthetic SQL inside a newly created disposable database."""
 
 from __future__ import annotations
 
