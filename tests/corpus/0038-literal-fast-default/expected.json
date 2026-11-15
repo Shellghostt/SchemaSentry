@@ -21,5 +21,7 @@
   ],
   "hintError": false,
   "live": true,
-  "migrationError": null
+  "migrationError": null,
+  "heapRewrite": false,
+  "fastDefault": true
 }
