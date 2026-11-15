@@ -2,11 +2,11 @@
 
 > Detect dangerous database schema changes before they reach production.
 
-![status](https://img.shields.io/badge/status-M3_classification-orange)
+![status](https://img.shields.io/badge/status-M3_complete-green)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.12+-3776AB?logo=python&logoColor=white)
 
-**Status: M3 implemented and locally verified on `feat/m3-implementation`; CI pending.**
+**Status: M3 complete on `feat/m3-implementation`, including branch and PR CI.**
 SchemaSentry captures read-only PostgreSQL snapshots, compares their structure and provides internal
 classification rules SS001–SS007 with bounded SQL evidence and explicit rename hints.
 Risk scoring, public classification reports and migration-to-snapshot prediction remain later milestones.
@@ -226,7 +226,7 @@ See [ADR 0004](docs/adr/0004-m3-classification-evidence.md) and the
 
 ## Roadmap
 
-M3 is **implemented and locally verified; CI pending**. Read the
+M3 is **complete on the feature branch, including CI**. Read the
 [M3 acceptance gates](docs/phases/M3.md), [validation record](docs/testing/m3-validation.md)
 and [development-tool audit](docs/DEVELOPMENT-TOOLS.md) before debugging.
 
@@ -234,7 +234,7 @@ and [development-tool audit](docs/DEVELOPMENT-TOOLS.md) before debugging.
 |---|---|---|
 | M1 | PostgreSQL introspection and normalised snapshot format | **Done** (v0.1.0) |
 | M2 | Snapshot storage and structural comparison | **Done (merged)** |
-| M3 | Internal classification rules SS001-SS007 | **Implemented; CI pending** |
+| M3 | Internal classification rules SS001-SS007 | **Done (feature branch, CI passed)** |
 | M4 | Risk scoring, Markdown and JSON reports, exit codes | Not started |
 | M5 | GitHub Action and CI integration | Not started |
 | M6 | MySQL support and migration performance analysis | Not started |

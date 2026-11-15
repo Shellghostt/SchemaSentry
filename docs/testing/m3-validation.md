@@ -4,7 +4,10 @@ M3 is implemented and locally verified on `feat/m3-implementation`, based on mer
 `02cf7e5`. Production implementation: `da8d148`. [ADR 0004](../adr/0004-m3-classification-evidence.md)
 was accepted and committed in `25072c8` before implementation. Reviewed corpus expectations were
 committed before the rules; they were not generated from classifier output.
-CI is pending. This record does not establish a merge or release.
+CI passed for `b73f9db`: [branch run 43742250735](https://github.com/Shellghostt/SchemaSentry/actions/runs/43742250735)
+and [PR run 43742445042](https://github.com/Shellghostt/SchemaSentry/actions/runs/43742445042) each passed
+all six jobs. The PR run completed at 17:41:20 UTC on 2026-11-15. This record does not establish a merge
+or release.
 
 ## Scope
 
@@ -42,7 +45,12 @@ that reviewed parser API. PyYAML remains declared but unused by the initial stri
 | `docker build -t schemasentry:m3-test .` | Passed with hashed runtime dependencies |
 | Installed Docker runtime, network disabled and fixture mounts read-only | All 59 offline cases matched: 57 classifications and 2 expected hint errors; CLI version and exact M2 diff JSON/exit 0 passed |
 | CodeGraph refresh and `git diff --check` | Passed; local index and generated artifacts stay ignored |
-| GitHub CI | Pending; no remote result is claimed yet |
+| GitHub branch and PR CI at `b73f9db` | Passed all six jobs: Python 3.12/3.13 lint, format, types and tests; PostgreSQL 13/15/16 integration; dependency audit |
+
+The PR's Python 3.12 and 3.13 jobs each passed 211 tests with 76 integration skips in 10.19 and 12.53 s,
+respectively, and reported 88% unit-job coverage. Those jobs have no database URL; the three separate
+integration jobs supply live database coverage. The native full suite with PG16 supplied the combined
+279-pass/8-skip and 92% coverage result above. Different coverage scopes are recorded separately.
 
 The 92% coverage result is below the historical M2 report's 96%. M3 adds defensive parsing,
 unconfirmed target/version paths and deliberately narrow default/cast/CHECK semantics, with some

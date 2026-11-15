@@ -23,7 +23,7 @@ updated: 2026-11-15
 
 ## 0. Machine context
 
-M2 is complete and merged into `main`; M3 is **implemented and locally verified; CI pending** on
+M2 is complete and merged into `main`; M3 is **complete, including branch and PR CI**, on
 `feat/m3-implementation`. [ADR 0004](adr/0004-m3-classification-evidence.md) defines the internal
 evidence API. The [M3 requirements](phases/M3.md) and [validation record](testing/m3-validation.md)
 record 59 reviewed cases, live PG13/15/16 evidence and canonical local gates.
@@ -427,7 +427,7 @@ baseline. PG13 remains compatibility coverage, not a recommendation to deploy an
 
 **Deliverable:** rules SS001–SS007, validated rename hints and minimal SQL evidence parsing with corpus cases.
 
-Status: **Implemented and locally verified; CI pending** on `feat/m3-implementation`.
+Status: **Complete on `feat/m3-implementation`, including branch and PR CI**.
 Follow [M3 requirements](phases/M3.md) and [ADR 0004](adr/0004-m3-classification-evidence.md);
 public reports and thresholds remain M4. SS-013–SS-020, including SS-013A, are implemented.
 
@@ -444,6 +444,9 @@ public reports and thresholds remain M4. SS-013–SS-020, including SS-013A, are
 [M3 validation](testing/m3-validation.md) maps each gate to its tests. Native `make test` passed with
 279 tests, 8 intentional offline skips and 92% coverage in 46.48 s. Live PG13.23/15.20/16.16 suites
 each passed 68 tests with the same 8 offline skips. Lint, types, build, audit and runtime smoke passed.
+Branch CI [43742250735](https://github.com/Shellghostt/SchemaSentry/actions/runs/43742250735) and PR CI
+[43742445042](https://github.com/Shellghostt/SchemaSentry/actions/runs/43742445042) passed all six jobs
+for `b73f9db`: Python 3.12/3.13, PG13/15/16 integration and dependency audit.
 
 ### M4 — Risk scoring and reports
 
@@ -599,7 +602,7 @@ no classification rule, risk score, Markdown report or migration corpus case.
 
 1. Read sections 0, 3 and 9.
 2. Run `make bootstrap`, `make test`, `make lint` and `make type`; use a disposable server for live evidence.
-3. M1/M2 are merged and M3 is implemented locally. Read [M3 requirements](phases/M3.md),
+3. M1/M2 are merged and M3 is complete on the feature branch with CI. Read [M3 requirements](phases/M3.md),
    [ADR 0004](adr/0004-m3-classification-evidence.md) and [validation](testing/m3-validation.md) before M4 work.
 4. Before changing a rule, add the corpus case that proves the change.
 5. If a finding is wrong, the fix is a new case plus a rule change — never a special case in the renderer.

@@ -1,6 +1,6 @@
 # SchemaSentry Architecture
 
-**Status: M3 implemented and locally verified; CI pending.** Read-only introspection feeds deterministic
+**Status: M3 complete on the feature branch, including CI.** Read-only introspection feeds deterministic
 snapshots; structural comparison and the internal SS001–SS007 registry consume those snapshots.
 Optional SQL and rename hints supply bounded evidence. Risk scoring, migration-to-snapshot prediction
 and public reports remain planned. [PLAN.md](PLAN.md) is authoritative;
@@ -53,4 +53,5 @@ design.
 
 The [phase requirements](phases/M3.md) map to 59 reviewed cases and live PG13/15/16 evidence.
 The [validation record](testing/m3-validation.md) records native gates, expected offline skips,
-installed-runtime checks and a finite Python memory workload. CI remains pending.
+installed-runtime checks and a finite Python memory workload. Branch and PR CI passed the Python
+3.12/3.13 checks, PG13/15/16 integration matrix and dependency audit.

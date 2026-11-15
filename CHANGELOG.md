@@ -14,7 +14,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Bounded SQLGlot PostgreSQL evidence parsing with original statement locations and visible unsupported
   syntax/errors; strict JSON v1 one-to-one column rename hints. Migration input is never executed.
 - 59 independently reviewed M3 corpus cases, disposable live PG13/15/16 checks and a repeated Python
-  memory workload. [Validation](docs/testing/m3-validation.md) records local results; CI is pending.
+  memory workload. [Validation](docs/testing/m3-validation.md) records passing local, branch and PR CI gates.
 - [M3 requirements](docs/phases/M3.md), accepted [ADR 0004](docs/adr/0004-m3-classification-evidence.md)
   and a [development-tool audit](docs/DEVELOPMENT-TOOLS.md).
 
