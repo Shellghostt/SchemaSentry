@@ -76,6 +76,15 @@ def test_sql_strings_dollar_quotes_and_nested_comments_preserve_statement_slices
     assert parsed.statements[2].location.line == 4
 
 
+def test_unquoted_identifiers_fold_ascii_without_changing_unicode() -> None:
+    statement = parse_migration(
+        "ALTER TABLE PUBLIC.ÄItems ALTER COLUMN ÄBody SET DEFAULT 'new';"
+    ).statements[0]
+    operation = statement.operations[0]
+    assert operation.schema_name == "public"
+    assert operation.table == "Äitems" and operation.column == "Äbody"
+
+
 @pytest.mark.parametrize(
     "text",
     [
