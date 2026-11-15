@@ -1,0 +1,1 @@
+ALTER TABLE ss_m3_0049.items ALTER COLUMN value SET DEFAULT random();

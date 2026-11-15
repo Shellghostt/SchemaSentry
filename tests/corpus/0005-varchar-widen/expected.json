@@ -1,0 +1,12 @@
+{
+  "ruleId": "SS002",
+  "category": "negative",
+  "findings": [],
+  "statementStatuses": [
+    "supported"
+  ],
+  "hintError": false,
+  "live": true,
+  "migrationError": null,
+  "heapRewrite": false
+}

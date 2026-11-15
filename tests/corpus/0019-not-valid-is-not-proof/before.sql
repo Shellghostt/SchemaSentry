@@ -1,0 +1,3 @@
+CREATE TABLE ss_m3_0019.items (id integer NOT NULL, body text);
+INSERT INTO ss_m3_0019.items VALUES (1, NULL);
+ALTER TABLE ss_m3_0019.items ADD CONSTRAINT proof CHECK (body IS NOT NULL) NOT VALID;

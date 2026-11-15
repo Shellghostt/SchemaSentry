@@ -1,0 +1,38 @@
+{
+  "ruleId": "SS005",
+  "category": "edge",
+  "findings": [
+    {
+      "schema": "ss_m3_0054",
+      "table": "items",
+      "object": "body",
+      "kind": "set_default",
+      "baseSeverity": "high",
+      "confidence": "low",
+      "effects": {
+        "lockLevel": "access_exclusive",
+        "scan": "unknown",
+        "rewrite": "unknown"
+      }
+    },
+    {
+      "schema": "ss_m3_0054",
+      "table": "items",
+      "object": "extra",
+      "kind": "add_column",
+      "baseSeverity": "high",
+      "confidence": "low",
+      "effects": {
+        "lockLevel": "access_exclusive",
+        "scan": "unknown",
+        "rewrite": "unknown"
+      }
+    }
+  ],
+  "statementStatuses": [
+    "supported"
+  ],
+  "hintError": false,
+  "live": true,
+  "migrationError": null
+}

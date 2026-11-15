@@ -1,0 +1,1 @@
+ALTER TABLE ss_m3_0057.items ADD COLUMN body integer NOT NULL DEFAULT 0;

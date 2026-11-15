@@ -1,0 +1,1 @@
+ALTER TABLE ss_m3_0050.items ADD COLUMN body text NOT NULL;

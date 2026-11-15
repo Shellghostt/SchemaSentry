@@ -1,0 +1,21 @@
+{
+  "ruleId": "SS006",
+  "category": "edge",
+  "findings": [
+    {
+      "schema": "ss_m3_0043",
+      "table": "items",
+      "object": "message",
+      "kind": "column_rename_declared",
+      "baseSeverity": "high",
+      "confidence": "high"
+    }
+  ],
+  "statementStatuses": [
+    "supported",
+    "supported"
+  ],
+  "hintError": false,
+  "live": true,
+  "migrationError": null
+}

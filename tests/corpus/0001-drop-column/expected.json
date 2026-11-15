@@ -1,0 +1,20 @@
+{
+  "ruleId": "SS001",
+  "category": "positive",
+  "findings": [
+    {
+      "schema": "ss_m3_0001",
+      "table": "items",
+      "object": "body",
+      "kind": "column_removed",
+      "baseSeverity": "critical",
+      "confidence": "high"
+    }
+  ],
+  "statementStatuses": [
+    "supported"
+  ],
+  "hintError": false,
+  "live": true,
+  "migrationError": null
+}

@@ -1,0 +1,1 @@
+ALTER TABLE ss_m3_0047.items ALTER COLUMN value SET DEFAULT ss_m3_0047.app_fn();

@@ -9,6 +9,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
+- Internal SS001–SS007 classification with immutable deterministic findings, explicit uncertainty
+  notices and separate DDL lock/scan/rewrite evidence.
+- Bounded SQLGlot PostgreSQL evidence parsing with original statement locations and visible unsupported
+  syntax/errors; strict JSON v1 one-to-one column rename hints. Migration input is never executed.
+- 59 independently reviewed M3 corpus cases, disposable live PG13/15/16 checks and a repeated Python
+  memory workload. [Validation](docs/testing/m3-validation.md) records passing local, branch and PR CI gates.
+- [M3 requirements](docs/phases/M3.md), accepted [ADR 0004](docs/adr/0004-m3-classification-evidence.md)
+  and a [development-tool audit](docs/DEVELOPMENT-TOOLS.md).
+
 - M2 structural `diff` command, 30 golden snapshot pairs and exact CLI/schema checks.
 - Constraint definitions and index key/include evidence, including native ordering flags,
   collation and opclass. Legacy snapshots warn when evidence is missing.
@@ -18,6 +27,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Changed
 
+- Canonical Make targets select the Windows/POSIX virtualenv interpreter directly and quote its path;
+  lint checks formatting as well as diagnostics. SQLGlot's declaration matches the reviewed 30.31 series.
+- Ruff explicitly recognizes the package as first-party, keeping test imports consistent before and
+  after new module files exist.
 - Snapshot capture now uses a read-only REPEATABLE READ transaction for a consistent catalog view.
 - Diff output is UTF-8/LF on Windows pipes. Snapshot input rejects ambiguous JSON fields,
   non-integer versions and duplicate object identities. Feature branches trigger CI.
@@ -26,7 +39,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Planned
 
-- M3: classification rules SS001–SS007 and migration corpus cases.
+- M4: risk scoring, public classification reports, thresholds, `compare`/`explain` and SS008–SS010.
 
 ## [0.1.0] - 2026-11-13
 

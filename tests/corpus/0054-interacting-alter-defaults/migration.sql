@@ -1,0 +1,1 @@
+ALTER TABLE ss_m3_0054.items ALTER COLUMN body SET DEFAULT 'new', ADD COLUMN extra text DEFAULT 'new';

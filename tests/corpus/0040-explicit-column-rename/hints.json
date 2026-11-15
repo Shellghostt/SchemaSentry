@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "renames": [
+    {
+      "schema": "ss_m3_0040",
+      "table": "items",
+      "from": "body",
+      "to": "message"
+    }
+  ]
+}

@@ -1,30 +1,37 @@
 PY := python
 VENV := .venv
 
+ifeq ($(OS),Windows_NT)
+VENV_PY := $(VENV)/Scripts/python.exe
+else
+VENV_PY := $(VENV)/bin/python
+endif
+
 .PHONY: bootstrap fmt lint type test cov integration build docker db-up db-down clean
 
 bootstrap:
-	$(PY) -m venv $(VENV)
-	$(VENV)/Scripts/python -m pip install --upgrade pip 2>/dev/null || $(VENV)/bin/python -m pip install --upgrade pip
-	$(VENV)/Scripts/python -m pip install -e ".[dev]" 2>/dev/null || $(VENV)/bin/python -m pip install -e ".[dev]"
+	$(PY) -m venv "$(VENV)"
+	"$(VENV_PY)" -m pip install --upgrade pip
+	"$(VENV_PY)" -m pip install -e ".[dev]"
 
 fmt:
-	$(VENV)/Scripts/python -m ruff format . 2>/dev/null || $(VENV)/bin/python -m ruff format .
+	"$(VENV_PY)" -m ruff format .
 
 lint:
-	$(VENV)/Scripts/python -m ruff check . 2>/dev/null || $(VENV)/bin/python -m ruff check .
+	"$(VENV_PY)" -m ruff check .
+	"$(VENV_PY)" -m ruff format --check .
 
 type:
-	$(VENV)/Scripts/python -m mypy src 2>/dev/null || $(VENV)/bin/python -m mypy src
+	"$(VENV_PY)" -m mypy src
 
 test:
-	$(VENV)/Scripts/python -m pytest 2>/dev/null || $(VENV)/bin/python -m pytest
+	"$(VENV_PY)" -m pytest
 
 cov:
-	$(VENV)/Scripts/python -m pytest --cov=src --cov-report=term-missing 2>/dev/null || $(VENV)/bin/python -m pytest --cov=src --cov-report=term-missing
+	"$(VENV_PY)" -m pytest --cov=src --cov-report=term-missing
 
 integration:
-	$(VENV)/Scripts/python -m pytest tests/integration 2>/dev/null || $(VENV)/bin/python -m pytest tests/integration
+	"$(VENV_PY)" -m pytest tests/integration
 
 db-up:
 	docker compose -f deploy/docker-compose.yml up -d postgres

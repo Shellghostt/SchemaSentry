@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "dialect": "postgres",
+  "serverVersion": "16.16",
+  "capturedAt": "2026-11-13T10:00:00Z",
+  "database": "schemasentry",
+  "schemas": [
+    "ss_m3_0003"
+  ],
+  "tables": [],
+  "sequences": [],
+  "extensions": [
+    "plpgsql"
+  ]
+}

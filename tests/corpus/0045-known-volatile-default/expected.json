@@ -1,0 +1,20 @@
+{
+  "ruleId": "SS007",
+  "category": "positive",
+  "findings": [
+    {
+      "schema": "ss_m3_0045",
+      "table": "items",
+      "object": "value",
+      "kind": "default_volatile",
+      "baseSeverity": "medium",
+      "confidence": "high"
+    }
+  ],
+  "statementStatuses": [
+    "supported"
+  ],
+  "hintError": false,
+  "live": true,
+  "migrationError": null
+}

@@ -12,7 +12,7 @@ depends_on:
   - PostgreSQL 13+ (first supported dialect)
   - Python 3.12+
 created: 2026-11-13
-updated: 2026-11-14
+updated: 2026-11-15
 ---
 
 # SchemaSentry — Implementation Plan
@@ -23,12 +23,19 @@ updated: 2026-11-14
 
 ## 0. Machine context
 
+M2 is complete and merged into `main`; M3 is **complete, including branch and PR CI**, on
+`feat/m3-implementation`. [ADR 0004](adr/0004-m3-classification-evidence.md) defines the internal
+evidence API. The [M3 requirements](phases/M3.md) and [validation record](testing/m3-validation.md)
+record 59 reviewed cases, live PG13/15/16 evidence and canonical local gates.
+The [development-tool audit](DEVELOPMENT-TOOLS.md) records profiling limits. No M3 release or merge
+is claimed; public reports and risk scoring remain M4.
+
 ```yaml
 project: SchemaSentry
 status: mvp
 version: 0.1.0
 builds: true
-functional: partial            # M1/M2 work; classification and risk scoring remain
+functional: partial            # M1/M2 and internal M3 work; public risk/report flow remains M4
 
 implemented:
   - typer cli with version, snapshot and structural diff
@@ -43,14 +50,18 @@ implemented:
   - read-only REPEATABLE READ capture and full index ordering/collation/opclass metadata
   - hashed runtime dependencies and feature-branch CI
   - exit codes 0, 3 and 4 (1 and 2 belong to the risk milestones)
+  - internal deterministic classification registry SS001-SS007 with evidence and limitations
+  - bounded SQLGlot PostgreSQL evidence parser with visible unsupported/errors and no SQL execution
+  - strict JSON v1 one-to-one column rename hints inside classification
+  - 59 reviewed corpus cases and disposable live PG13/15/16 classification evidence
+  - native Python lifecycle profiling and installed Docker runtime checks
 
 not_implemented:
-  - classification rules
   - risk scoring
-  - markdown and json reports
-  - explain and rules commands
-  - migration parsing (sqlglot)
-  - hints and rename support
+  - public markdown and json classification reports
+  - compare, explain and rules commands
+  - migration-to-snapshot prediction and broader parser integration
+  - ownership hints and hint format v2
   - github action
   - mysql support
 
@@ -285,8 +296,9 @@ schemasentry version
 logs. The tool opens a read-only transaction and sets `statement_timeout = 5s`.
 
 Implemented in M2: `snapshot`, `diff --before FILE --after FILE` and `version`. Diff prints structural
-JSON and exits 0 even with changes. Classification, thresholds and richer reports remain M3/M4; codes
-1 and 2 are unreachable in M2. Input is capped at 64 MiB; malformed/ambiguous input exits 3.
+JSON and exits 0 even with changes. M3 classification is an internal library API; thresholds and
+public reports remain M4, and codes 1 and 2 are unreachable through M3. Input is capped at 64 MiB;
+malformed/ambiguous input exits 3. See [M3 validation](testing/m3-validation.md) for the evidence API.
 
 ---
 
@@ -296,16 +308,16 @@ Stable ids. One page each in `docs/rules/`. Every rule has at least one corpus c
 
 | ID | Detects | Base severity | Notes |
 |---|---|---|---|
-| SS001 | Column removed | critical | Always breaks readers older than the deploy |
+| SS001 | Column removed | critical | Breaks readers still referencing that column |
 | SS002 | Column type changed | high | Some changes are safe; see table below |
-| SS003 | NOT NULL added without a default | high | Full scan under ACCESS EXCLUSIVE unless `NOT VALID` |
+| SS003 | NOT NULL added without validated evidence that existing rows satisfy it | high | Defaults are not proof; validated CHECK evidence can avoid a scan on supported versions |
 | SS004 | Missing index on a foreign key | medium | Scaled by table size; write-path amplification |
 | SS005 | Locking or rewriting statement | high | `ALTER TYPE`, `SET NOT NULL`, `ADD COLUMN ... DEFAULT`, `VACUUM FULL` |
 | SS006 | Rename appearing as drop + add | high | Requires a rename hint file, otherwise data loss risk |
-| SS007 | Volatile or non-constant default | medium | Volatile default rewrites the table on PG < 11 and forces a scan |
-| SS008 | Constraint added without `NOT VALID` | medium | `VALIDATE CONSTRAINT` can be run separately |
-| SS009 | Index created without `CONCURRENTLY` | medium | Blocks writes for the duration of the build |
-| SS010 | Enum value removed or renamed | high | Values cannot be removed in PostgreSQL |
+| SS007 | Known volatile default or unknown function volatility | medium | Nonliteral does not imply volatile; PG11+ non-volatile ADD COLUMN defaults can avoid rewrite |
+| SS008 | Constraint added without `NOT VALID` | medium | M4; supported CHECK/FK constraints can be validated separately |
+| SS009 | Index created without `CONCURRENTLY` | medium | M4; blocks writes for the duration of the build |
+| SS010 | Enum value removed or renamed | high | M4; PostgreSQL has no direct enum-value removal operation |
 
 **Type-change nuance for SS002** (the rule must not cry wolf):
 
@@ -317,7 +329,10 @@ Stable ids. One page each in `docs/rules/`. Every rule has at least one corpus c
 | `bigint` → `int` | high, overflow risk |
 | `text` → `varchar(n)` | high, needs validation query |
 | `timestamp` → `timestamptz` | high, silent timezone reinterpretation |
-| `numeric(p,s)` widening | medium, rewrite |
+| `numeric(p,s)` widening | medium; conversion/scan/rewrite depends on typmod and server evidence |
+
+Base severities are policy; cast/lock/rewrite claims require version-specific evidence. USING expressions,
+unknown types and user-function volatility must not be treated as safe by inference. See [M3 requirements](phases/M3.md).
 
 **Risk scoring.** `risk = max(base severity, size modifier, lock modifier)`, then one level up if the object is
 referenced by a foreign key or a unique constraint.
@@ -335,7 +350,8 @@ referenced by a foreign key or a unique constraint.
 **Every finding carries a `safeAlternative`** where one exists:
 
 - SS001 → expand/contract: stop reading the column, deploy, then drop in a later migration.
-- SS003 → `ADD CONSTRAINT ... NOT VALID` then `VALIDATE CONSTRAINT`.
+- SS003 → add a CHECK `(column IS NOT NULL) NOT VALID`, validate it, then SET NOT NULL where the
+  server can use that proof. NOT VALID cannot be applied directly to NOT NULL; document locks per step.
 - SS009 → `CREATE INDEX CONCURRENTLY`.
 - SS006 → rename hint file, or expand/contract.
 
@@ -400,25 +416,41 @@ difference in how an unanalysed table reports its row estimate.
 - [x] 20 fixture pairs with expected change sets, all passing
 - [x] Comparison of a 500-table snapshot completes in under 10 s
 
-M2 is complete locally and unreleased. Thirty pairs, real CLI/schema tests and live PG 13/15/16
+M2 is complete and merged into `main`. Thirty pairs, real CLI/schema tests and live PG 13/15/16
 checks pass. See ADR 0003 and docs/testing/m1-m2-validation.md. Diff compares tables/columns/constraints/
 indexes; sequences, extensions, capture scope and uncaptured table properties remain outside this milestone.
 
+Main CI [43553918501](https://github.com/shellghostt/schemasentry/actions/runs/43553918501) passed for this
+baseline. PG13 remains compatibility coverage, not a recommendation to deploy an upstream unsupported version.
+
 ### M3 — Classification rules
 
-**Deliverable:** rules SS001–SS007 with corpus cases.
+**Deliverable:** rules SS001–SS007, validated rename hints and minimal SQL evidence parsing with corpus cases.
+
+Status: **Complete on `feat/m3-implementation`, including branch and PR CI**.
+Follow [M3 requirements](phases/M3.md) and [ADR 0004](adr/0004-m3-classification-evidence.md);
+public reports and thresholds remain M4. SS-013–SS-020, including SS-013A, are implemented.
 
 **Acceptance criteria**
 
-- [ ] Every rule has at least 3 corpus cases: one positive, one negative, one edge
-- [ ] SS002 type matrix implemented exactly as specified in section 9
-- [ ] SS006 requires a hint file; without one it reports both drop and add
-- [ ] Unanalysable statements are reported, never silently ignored
-- [ ] Corpus suite runs in under 60 s
+- [x] Every rule has at least 3 corpus cases: one positive, one negative, one edge
+- [x] SS002 type matrix implemented with section 9's policy and ADR 0004's evidence prerequisites
+- [x] SS006 requires explicit hints; without them structural drop/add remains and SS001 classifies removal
+- [x] Unanalysable statements are reported, never silently ignored
+- [x] Corpus suite runs in under 60 s
+- [x] NOT NULL/default/volatility evidence and version caveats are covered without guessing
+- [x] Existing structural `diff` JSON and exit 0 remain unchanged
+
+[M3 validation](testing/m3-validation.md) maps each gate to its tests. Native `make test` passed with
+279 tests, 8 intentional offline skips and 92% coverage in 46.48 s. Live PG13.23/15.20/16.16 suites
+each passed 68 tests with the same 8 offline skips. Lint, types, build, audit and runtime smoke passed.
+Branch CI [43742250735](https://github.com/Shellghostt/SchemaSentry/actions/runs/43742250735) and PR CI
+[43742445042](https://github.com/Shellghostt/SchemaSentry/actions/runs/43742445042) passed all six jobs
+for `b73f9db`: Python 3.12/3.13, PG13/15/16 integration and dependency audit.
 
 ### M4 — Risk scoring and reports
 
-**Deliverable:** risk levels, Markdown and JSON reports, exit codes, `explain`.
+**Deliverable:** rules SS008–SS010, risk levels, Markdown and JSON reports, exit codes, `compare` and `explain`.
 
 **Acceptance criteria**
 
@@ -471,19 +503,21 @@ indexes; sequences, extensions, capture scope and uncaptured table properties re
 | SS-011 | Constraint and index diff | SS-009 | M2 |
 | SS-012 | Fixture pairs and golden diff tests | SS-010 | M2 |
 | SS-013 | Rule framework + registry | SS-010 | M3 |
+| SS-013A | Minimal SQL evidence parser with explicit unsupported results | SS-013 | M3 |
 | SS-014 | SS001 drop column | SS-013 | M3 |
 | SS-015 | SS002 type change matrix | SS-013 | M3 |
-| SS-016 | SS003 not-null without default | SS-013 | M3 |
+| SS-016 | SS003 not-null with validated-row evidence | SS-013 | M3 |
 | SS-017 | SS004 missing fk index | SS-013 | M3 |
-| SS-018 | SS005 locking statements | SS-013 | M3 |
+| SS-018 | SS005 locking statements | SS-013A | M3 |
 | SS-019 | SS006 rename hints | SS-013 | M3 |
-| SS-020 | SS007 volatile default | SS-013 | M3 |
+| SS-020 | SS007 default volatility/version evidence | SS-013A | M3 |
+| SS-020A | SS008–SS010 constraints/indexes/enums and corpus cases | SS-020 | M4 |
 | SS-021 | Risk scoring engine | SS-014 | M4 |
 | SS-022 | Markdown renderer | SS-021 | M4 |
 | SS-023 | JSON renderer and determinism tests | SS-021 | M4 |
 | SS-024 | `explain` command and rule docs | SS-013 | M4 |
 | SS-025 | Corpus expansion to 60 cases | SS-020 | M4 |
-| SS-026 | Migration parser (sqlglot) | SS-009 | M5 |
+| SS-026 | Broader migration parser integration for CI (minimal parser is SS-013A) | SS-013A | M5 |
 | SS-027 | GitHub Action and PR comment | SS-022 | M5 |
 | SS-028 | Baseline convention and docs | SS-027 | M5 |
 | SS-029 | MySQL dialect | SS-009 | M6 |
@@ -567,7 +601,8 @@ no classification rule, risk score, Markdown report or migration corpus case.
 ## 17. Handoff protocol
 
 1. Read sections 0, 3 and 9.
-2. `make bootstrap && make test`. The corpus suite should be green and empty.
-3. M1/M2 are complete locally. Start M3 at SS-013; add corpus cases before classification rules.
+2. Run `make bootstrap`, `make test`, `make lint` and `make type`; use a disposable server for live evidence.
+3. M1/M2 are merged and M3 is complete on the feature branch with CI. Read [M3 requirements](phases/M3.md),
+   [ADR 0004](adr/0004-m3-classification-evidence.md) and [validation](testing/m3-validation.md) before M4 work.
 4. Before changing a rule, add the corpus case that proves the change.
 5. If a finding is wrong, the fix is a new case plus a rule change — never a special case in the renderer.

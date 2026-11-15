@@ -1,0 +1,27 @@
+{
+  "ruleId": "SS005",
+  "category": "edge",
+  "findings": [
+    {
+      "schema": "ss_m3_0039",
+      "table": "items",
+      "object": "score",
+      "kind": "add_column",
+      "baseSeverity": "high",
+      "confidence": "high",
+      "effects": {
+        "lockLevel": "access_exclusive",
+        "scan": "required",
+        "rewrite": "required"
+      }
+    }
+  ],
+  "statementStatuses": [
+    "supported"
+  ],
+  "hintError": false,
+  "live": true,
+  "migrationError": null,
+  "heapRewrite": true,
+  "fastDefault": false
+}

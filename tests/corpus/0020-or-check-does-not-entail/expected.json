@@ -1,0 +1,20 @@
+{
+  "ruleId": "SS003",
+  "category": "edge",
+  "findings": [
+    {
+      "schema": "ss_m3_0020",
+      "table": "items",
+      "object": "body",
+      "kind": "not_null_added",
+      "baseSeverity": "high",
+      "confidence": "high"
+    }
+  ],
+  "statementStatuses": [
+    "supported"
+  ],
+  "hintError": false,
+  "live": true,
+  "migrationError": "23502"
+}
