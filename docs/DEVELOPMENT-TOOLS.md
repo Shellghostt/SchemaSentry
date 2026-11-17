@@ -1,7 +1,8 @@
 # Development tools and memory validation
 
 Audit date: 2026-11-14. These are development aids, not product features or substitutes for tests.
-Read [PLAN.md](PLAN.md), the [M3 requirements](phases/M3.md) and accepted [ADRs](adr/) first.
+Read [PLAN.md](PLAN.md), the [M4 requirements](phases/M4.md), implemented [M3 contract](phases/M3.md)
+and accepted [ADRs](adr/) first. M4 ADR 0005 remains proposed.
 
 ## CodeGraph
 
@@ -12,6 +13,9 @@ The previous index was still at M1. Check freshness when switching branches or p
 codegraph status
 codegraph sync
 ```
+
+On 2026-11-17, `codegraph status` reported the existing index up to date against merged M3 source.
+No new index or generated source was created for M4 preparation.
 
 For indexed code, use the CodeGraph MCP exploration tool with this repository's absolute
 `projectPath` and the symbol/flow you need. Read its returned source and callers before edits;
@@ -35,6 +39,13 @@ active handles as applicable, and latency/drop metrics. Go benchmarks can collec
 heap snapshots/inspector; Python supports `tracemalloc`. Choose the native tool for the process.
 Record versions, duration, inputs, commands and limitations in a validation report.
 Profile only when the change or suspected fault justifies it; a documentation edit needs link/diff checks.
+
+## M4 implementation validation
+
+Use Python tracemalloc/RSS profiles for repeated classification/scoring/JSON/Markdown runs and bounded
+input rejection. Retain the 500-table/corpus/memory budgets; include output buffers and parser/rule
+evidence, not only an empty renderer. Resource measurements and new public-report cases are future
+gates. This pass ran documentation checks only and did not change Python dependencies or catalogs.
 
 ## Memory Analyzer
 

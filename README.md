@@ -6,7 +6,7 @@
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.12+-3776AB?logo=python&logoColor=white)
 
-**Status: M3 complete on `feat/m3-implementation`, including branch and PR CI.**
+**Status: M1–M3 complete and merged into main, with passing CI.**
 SchemaSentry captures read-only PostgreSQL snapshots, compares their structure and provides internal
 classification rules SS001–SS007 with bounded SQL evidence and explicit rename hints.
 Risk scoring, public classification reports and migration-to-snapshot prediction remain later milestones.
@@ -226,20 +226,23 @@ See [ADR 0004](docs/adr/0004-m3-classification-evidence.md) and the
 
 ## Roadmap
 
-M3 is **complete on the feature branch, including CI**. Read the
+M3 is **complete and merged** through [PR #3](https://github.com/Shellghostt/SchemaSentry/pull/3), with
+successful [main CI](https://github.com/Shellghostt/SchemaSentry/actions/runs/43744133540). Read the
 [M3 acceptance gates](docs/phases/M3.md), [validation record](docs/testing/m3-validation.md)
 and [development-tool audit](docs/DEVELOPMENT-TOOLS.md) before debugging.
+The [M4 requirements](docs/phases/M4.md) and [proposed scoring/report ADR](docs/adr/0005-m4-risk-and-report-contract.md)
+prepare SS008–SS010 and public reports/commands; M4 implementation has not started.
 
 | Milestone | Deliverable | Status |
 |---|---|---|
 | M1 | PostgreSQL introspection and normalised snapshot format | **Done** (v0.1.0) |
 | M2 | Snapshot storage and structural comparison | **Done (merged)** |
-| M3 | Internal classification rules SS001-SS007 | **Done (feature branch, CI passed)** |
-| M4 | Risk scoring, Markdown and JSON reports, exit codes | Not started |
+| M3 | Internal classification rules SS001-SS007 | **Done (merged)** |
+| M4 | SS008–SS010, scoring, reports and public commands | Not started; documents prepared |
 | M5 | GitHub Action and CI integration | Not started |
 | M6 | MySQL support and migration performance analysis | Not started |
 
-This roadmap mirrors [docs/PLAN.md](docs/PLAN.md) section 12. If the two disagree, the plan is correct and
+This roadmap mirrors [docs/PLAN.md](docs/PLAN.md) section 11. If the two disagree, the plan is correct and
 the README is a bug.
 
 ## Project standards

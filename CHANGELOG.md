@@ -9,6 +9,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
+- [M4 preparation](docs/phases/M4.md) and [proposed ADR 0005](docs/adr/0005-m4-risk-and-report-contract.md)
+  for SS008–SS010 evidence, scoring, deterministic public reports/CLI and future acceptance. Documentation
+  only; M4 remains not started. Current status records merged M3 and successful main CI.
 - Internal SS001–SS007 classification with immutable deterministic findings, explicit uncertainty
   notices and separate DDL lock/scan/rewrite evidence.
 - Bounded SQLGlot PostgreSQL evidence parsing with original statement locations and visible unsupported
