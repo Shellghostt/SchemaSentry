@@ -6,7 +6,8 @@ M4 is implemented and locally verified on `feat/m4-implementation`, based on mer
 the nine independently reviewed M4 oracles were committed in `31557cc` before dependent rules.
 The 59 M3 cases and their expectations are unchanged.
 
-**Final GitHub CI is pending publication. No M4 push, PR, merge or release is claimed here.**
+**Published at [PR #4](https://github.com/Shellghostt/SchemaSentry/pull/4); final GitHub CI is pending.
+No M4 merge or release is claimed.**
 This record covers the local work performed on 2026-11-20–21 and maps the
 [M4 requirements](../phases/M4.md) to actual checks.
 
@@ -61,7 +62,7 @@ setuptools 84.2.1/wheel 0.48.0. Updated bootstrap and the Python CI install step
 | Unprivileged/read-only Docker runtime, network disabled, Python 3.12.16 | **Same complete installed-runtime checks passed** |
 | Owned 500-table capture and lifecycle profile | Passed existing snapshot/diff/corpus/RSS budgets; measurements below |
 | Existing CodeGraph refresh and `git diff --check` | Passed; generated index and raw artifacts remain ignored |
-| Final GitHub Python 3.12/3.13 and PG13/15/16 CI | **Pending publication; not a passing check yet** |
+| Final GitHub Python 3.12/3.13 and PG13/15/16 CI | **Pending corrected workflow; not a passing check yet** |
 
 The 60-second criterion applies to the reviewed corpus, not the complete suite with subprocess/live
 integration checks. The final native suite was run alongside separate PG13/15 jobs; measured times
@@ -69,6 +70,13 @@ are reported as observed. Coverage is 91% versus the M3 record's 92%: M4 adds de
 and real CLI subprocess coverage is not aggregated into the parent report. Functional subprocess tests
 pass; some fallback paths remain uncovered. This reduction is disclosed rather than padded with tests.
 Setuptools also emits the existing TOML license-table deprecation warning; the build succeeds.
+
+Initial published [branch CI 44797153567](https://github.com/Shellghostt/SchemaSentry/actions/runs/44797153567)
+and [PR CI 44797205018](https://github.com/Shellghostt/SchemaSentry/actions/runs/44797205018) stopped the
+Python jobs at documentation checking: Actions installs into its configured interpreter, while the new
+Make steps expected a `.venv` that the workflow does not create. CI now overrides `VENV_PY=python` for
+documentation and package targets, preserving normal local virtualenv behavior. No application code
+changed for this correction. Final passing workflow evidence will be recorded separately.
 
 ## Acceptance mapping
 
@@ -185,5 +193,5 @@ Each disposable server had zero owned `ss_m3_`/`ss_m4_` databases and `ss_it_` s
 The three task-owned services were stopped with
 `docker compose -p ss-m4-20261120 -f dist/m4-pg.compose.json down` without volume deletion.
 Existing Docker projects/data are preserved. Logs, wheel, runtime image and raw profiles
-remain local for review. Final GitHub CI requires authorized feature-branch publication; merge remains
-a separate decision.
+remain local for review. The feature branch and PR are published with authorization; final GitHub CI
+must pass before the separate merge decision.

@@ -45,10 +45,10 @@ jobs:
         run: mypy src
 
       - name: Public documentation and schemas
-        run: make check-docs
+        run: make VENV_PY=python check-docs
 
       - name: Package build
-        run: make build
+        run: make VENV_PY=python build
 
       - name: Test
         run: pytest --cov=src --cov-report=term-missing
