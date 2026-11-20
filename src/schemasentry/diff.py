@@ -10,6 +10,7 @@ from typing import Any
 
 from pydantic import Field, ValidationError
 
+from schemasentry.catalog_models import validate_catalog
 from schemasentry.errors import ToolError
 from schemasentry.snapshot import Column, Snapshot, SnapshotModel, Table
 
@@ -95,6 +96,7 @@ def _validate(snapshot: Snapshot) -> None:
         _unique(table.columns, lambda c: c.name)
         _unique(table.constraints, lambda c: c.name)
         _unique(table.indexes, lambda i: i.name)
+    validate_catalog(snapshot)
 
 
 def _semantic_objects(

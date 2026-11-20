@@ -2,7 +2,8 @@
 
 Audit date: 2026-11-14. These are development aids, not product features or substitutes for tests.
 Read [PLAN.md](PLAN.md), the [M4 requirements](phases/M4.md), implemented [M3 contract](phases/M3.md)
-and accepted [ADRs](adr/) first. M4 ADR 0005 remains proposed.
+and accepted [ADRs](adr/) first. M4 ADR 0005 is accepted; [validation](testing/m4-validation.md)
+records local M4 checks and pending GitHub CI.
 
 ## CodeGraph
 
@@ -16,6 +17,7 @@ codegraph sync
 
 On 2026-11-17, `codegraph status` reported the existing index up to date against merged M3 source.
 No new index or generated source was created for M4 preparation.
+The existing index was refreshed again during M4 implementation; no new index or upgrade was performed.
 
 For indexed code, use the CodeGraph MCP exploration tool with this repository's absolute
 `projectPath` and the symbol/flow you need. Read its returned source and callers before edits;
@@ -42,10 +44,17 @@ Profile only when the change or suspected fault justifies it; a documentation ed
 
 ## M4 implementation validation
 
-Use Python tracemalloc/RSS profiles for repeated classification/scoring/JSON/Markdown runs and bounded
-input rejection. Retain the 500-table/corpus/memory budgets; include output buffers and parser/rule
-evidence, not only an empty renderer. Resource measurements and new public-report cases are future
-gates. This pass ran documentation checks only and did not change Python dependencies or catalogs.
+`scripts/profile_m4.py` creates one exact owned disposable database, captures 500 populated tables with
+enum references and outside-schema incoming FKs, then repeats parser/diff/assessment/JSON/Markdown
+lifecycles and over-limit rejection. Its six-cycle run measured 1,194 lifecycles, including the large
+snapshot pair, with peak RSS 131,653,632 bytes and post-GC RSS 93,466,624–101,011,456 bytes. Retained traced
+Python allocation was 3,484 bytes, dominated by profile samples/bookkeeping. This is finite synthetic
+evidence, not a universal leak-free guarantee. Timing and output sizes are in the M4 validation record.
+
+Run `scripts/check_runtime.py` with an installed wheel or in the unprivileged, read-only Docker runtime
+with networking disabled. It verifies 59 M3 cases, nine M4 public CLI cases, 30 structural fixtures and
+offline metadata commands. Generated rule pages and public schemas are checked with `make check-docs`.
+Raw logs/snapshots/profiles stay under ignored `dist/`; runtime dependency versions remain locked.
 
 ## Memory Analyzer
 

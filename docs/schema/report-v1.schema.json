@@ -1,0 +1,477 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Shellghostt/SchemaSentry/schema/report-v1.schema.json",
+  "$defs": {
+    "AssessmentNotice": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLocation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "impact": {
+          "enum": [
+            "information",
+            "incomplete"
+          ],
+          "title": "Impact",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "detail",
+        "location",
+        "impact"
+      ],
+      "title": "AssessmentNotice",
+      "type": "object"
+    },
+    "Effects": {
+      "additionalProperties": false,
+      "properties": {
+        "lockLevel": {
+          "enum": [
+            "access_exclusive",
+            "share",
+            "share_row_exclusive",
+            "share_update_exclusive",
+            "unknown"
+          ],
+          "title": "Locklevel",
+          "type": "string"
+        },
+        "scan": {
+          "enum": [
+            "required",
+            "not_required",
+            "unknown"
+          ],
+          "title": "Scan",
+          "type": "string"
+        },
+        "rewrite": {
+          "enum": [
+            "required",
+            "not_required",
+            "unknown"
+          ],
+          "title": "Rewrite",
+          "type": "string"
+        }
+      },
+      "required": [
+        "lockLevel",
+        "scan",
+        "rewrite"
+      ],
+      "title": "Effects",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "enum": [
+            "snapshot",
+            "migration",
+            "hint",
+            "postgres_semantics"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLocation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "source",
+        "detail",
+        "location"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "InputMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": {
+          "title": "Schemaversion",
+          "type": "integer"
+        },
+        "catalogEvidenceVersion": {
+          "anyOf": [
+            {
+              "const": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Catalogevidenceversion"
+        },
+        "dialect": {
+          "title": "Dialect",
+          "type": "string"
+        },
+        "serverVersion": {
+          "title": "Serverversion",
+          "type": "string"
+        },
+        "capturedAt": {
+          "title": "Capturedat",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "catalogEvidenceVersion",
+        "dialect",
+        "serverVersion",
+        "capturedAt",
+        "digest"
+      ],
+      "title": "InputMetadata",
+      "type": "object"
+    },
+    "RiskModifier": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "enum": [
+            "row_estimate",
+            "incoming_foreign_keys",
+            "service_reader_lock"
+          ],
+          "title": "Name",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "applied",
+            "not_applied",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "contribution": {
+          "maximum": 2,
+          "minimum": 0,
+          "title": "Contribution",
+          "type": "integer"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "evidence": {
+          "title": "Evidence",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "status",
+        "contribution",
+        "value",
+        "evidence"
+      ],
+      "title": "RiskModifier",
+      "type": "object"
+    },
+    "ScoredFinding": {
+      "additionalProperties": false,
+      "properties": {
+        "ruleId": {
+          "title": "Ruleid",
+          "type": "string"
+        },
+        "schema": {
+          "title": "Schema",
+          "type": "string"
+        },
+        "table": {
+          "title": "Table",
+          "type": "string"
+        },
+        "object": {
+          "title": "Object",
+          "type": "string"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "baseSeverity": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "title": "Baseseverity",
+          "type": "string"
+        },
+        "confidence": {
+          "enum": [
+            "high",
+            "low"
+          ],
+          "title": "Confidence",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        },
+        "safeAlternative": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Safealternative"
+        },
+        "effects": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Effects"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "finalRisk": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "title": "Finalrisk",
+          "type": "string"
+        },
+        "modifiers": {
+          "items": {
+            "$ref": "#/$defs/RiskModifier"
+          },
+          "title": "Modifiers",
+          "type": "array"
+        },
+        "estimatedSeconds": {
+          "default": null,
+          "title": "Estimatedseconds",
+          "type": "null"
+        }
+      },
+      "required": [
+        "ruleId",
+        "schema",
+        "table",
+        "object",
+        "kind",
+        "baseSeverity",
+        "confidence",
+        "evidence",
+        "limitations",
+        "safeAlternative",
+        "effects",
+        "finalRisk",
+        "modifiers",
+        "estimatedSeconds"
+      ],
+      "title": "ScoredFinding",
+      "type": "object"
+    },
+    "SourceLocation": {
+      "additionalProperties": false,
+      "description": "Character offsets are zero-based, end-exclusive; line/column are one-based.",
+      "properties": {
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer"
+        },
+        "end": {
+          "minimum": 0,
+          "title": "End",
+          "type": "integer"
+        },
+        "line": {
+          "minimum": 1,
+          "title": "Line",
+          "type": "integer"
+        },
+        "column": {
+          "minimum": 1,
+          "title": "Column",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "line",
+        "column"
+      ],
+      "title": "SourceLocation",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": 1,
+      "default": 1,
+      "title": "Schemaversion",
+      "type": "integer"
+    },
+    "policyVersion": {
+      "const": 1,
+      "default": 1,
+      "title": "Policyversion",
+      "type": "integer"
+    },
+    "toolVersion": {
+      "default": "0.1.0",
+      "title": "Toolversion",
+      "type": "string"
+    },
+    "analysisStatus": {
+      "enum": [
+        "complete",
+        "incomplete"
+      ],
+      "title": "Analysisstatus",
+      "type": "string"
+    },
+    "threshold": {
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "title": "Threshold",
+      "type": "string"
+    },
+    "overallRisk": {
+      "anyOf": [
+        {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Overallrisk"
+    },
+    "before": {
+      "$ref": "#/$defs/InputMetadata"
+    },
+    "after": {
+      "$ref": "#/$defs/InputMetadata"
+    },
+    "findings": {
+      "items": {
+        "$ref": "#/$defs/ScoredFinding"
+      },
+      "title": "Findings",
+      "type": "array"
+    },
+    "notices": {
+      "items": {
+        "$ref": "#/$defs/AssessmentNotice"
+      },
+      "title": "Notices",
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "policyVersion",
+    "toolVersion",
+    "analysisStatus",
+    "threshold",
+    "overallRisk",
+    "before",
+    "after",
+    "findings",
+    "notices",
+    "limitations"
+  ],
+  "title": "Report",
+  "type": "object"
+}

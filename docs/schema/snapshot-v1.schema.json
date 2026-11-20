@@ -63,6 +63,85 @@
         "type": "string",
         "minLength": 1
       }
+    },
+    "catalogEvidence": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "evidenceVersion": {
+              "const": 1,
+              "title": "Evidenceversion",
+              "type": "integer"
+            },
+            "scopeSchemas": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Scopeschemas",
+              "type": "array"
+            },
+            "relations": {
+              "items": {
+                "$ref": "#/$defs/RelationFact"
+              },
+              "title": "Relations",
+              "type": "array"
+            },
+            "constraintValidity": {
+              "items": {
+                "$ref": "#/$defs/ConstraintValidity"
+              },
+              "title": "Constraintvalidity",
+              "type": "array"
+            },
+            "enums": {
+              "items": {
+                "$ref": "#/$defs/EnumDefinition"
+              },
+              "title": "Enums",
+              "type": "array"
+            },
+            "enumColumns": {
+              "items": {
+                "$ref": "#/$defs/EnumColumn"
+              },
+              "title": "Enumcolumns",
+              "type": "array"
+            },
+            "incomingForeignKeys": {
+              "items": {
+                "$ref": "#/$defs/IncomingForeignKey"
+              },
+              "title": "Incomingforeignkeys",
+              "type": "array"
+            },
+            "unsupportedTypes": {
+              "default": [],
+              "items": {
+                "$ref": "#/$defs/UnsupportedType"
+              },
+              "title": "Unsupportedtypes",
+              "type": "array"
+            }
+          },
+          "required": [
+            "evidenceVersion",
+            "scopeSchemas",
+            "relations",
+            "constraintValidity",
+            "enums",
+            "enumColumns",
+            "incomingForeignKeys"
+          ],
+          "title": "CatalogEvidence",
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Optional version-1 M4 catalog evidence. Omission/null means unknown."
     }
   },
   "$defs": {
@@ -347,6 +426,239 @@
           "type": "boolean"
         }
       }
+    },
+    "ConstraintValidity": {
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "minLength": 1,
+          "title": "Schema",
+          "type": "string"
+        },
+        "table": {
+          "minLength": 1,
+          "title": "Table",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "check",
+            "foreign_key"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "validated": {
+          "title": "Validated",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "schema",
+        "table",
+        "name",
+        "kind",
+        "validated"
+      ],
+      "title": "ConstraintValidity",
+      "type": "object"
+    },
+    "EnumColumn": {
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "minLength": 1,
+          "title": "Schema",
+          "type": "string"
+        },
+        "table": {
+          "minLength": 1,
+          "title": "Table",
+          "type": "string"
+        },
+        "column": {
+          "minLength": 1,
+          "title": "Column",
+          "type": "string"
+        },
+        "typeSchema": {
+          "minLength": 1,
+          "title": "Typeschema",
+          "type": "string"
+        },
+        "typeName": {
+          "minLength": 1,
+          "title": "Typename",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "direct",
+            "array",
+            "domain"
+          ],
+          "title": "Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema",
+        "table",
+        "column",
+        "typeSchema",
+        "typeName",
+        "mode"
+      ],
+      "title": "EnumColumn",
+      "type": "object"
+    },
+    "EnumDefinition": {
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "minLength": 1,
+          "title": "Schema",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "labels": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Labels",
+          "type": "array"
+        }
+      },
+      "required": [
+        "schema",
+        "name",
+        "labels"
+      ],
+      "title": "EnumDefinition",
+      "type": "object"
+    },
+    "IncomingForeignKey": {
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "minLength": 1,
+          "title": "Schema",
+          "type": "string"
+        },
+        "table": {
+          "minLength": 1,
+          "title": "Table",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "targetSchema": {
+          "minLength": 1,
+          "title": "Targetschema",
+          "type": "string"
+        },
+        "targetTable": {
+          "minLength": 1,
+          "title": "Targettable",
+          "type": "string"
+        },
+        "targetColumns": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Targetcolumns",
+          "type": "array"
+        }
+      },
+      "required": [
+        "schema",
+        "table",
+        "name",
+        "targetSchema",
+        "targetTable",
+        "targetColumns"
+      ],
+      "title": "IncomingForeignKey",
+      "type": "object"
+    },
+    "RelationFact": {
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "minLength": 1,
+          "title": "Schema",
+          "type": "string"
+        },
+        "table": {
+          "minLength": 1,
+          "title": "Table",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "ordinary",
+            "partitioned"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema",
+        "table",
+        "kind"
+      ],
+      "title": "RelationFact",
+      "type": "object"
+    },
+    "UnsupportedType": {
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "minLength": 1,
+          "title": "Schema",
+          "type": "string"
+        },
+        "table": {
+          "minLength": 1,
+          "title": "Table",
+          "type": "string"
+        },
+        "column": {
+          "minLength": 1,
+          "title": "Column",
+          "type": "string"
+        },
+        "reason": {
+          "enum": [
+            "domain_dependency",
+            "composite_dependency"
+          ],
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema",
+        "table",
+        "column",
+        "reason"
+      ],
+      "title": "UnsupportedType",
+      "type": "object"
     }
   }
 }

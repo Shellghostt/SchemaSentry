@@ -9,8 +9,9 @@ Thanks for taking the time. This document is deliberately short and specific.
 2. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - how the pieces fit together.
 3. [docs/adr/](docs/adr/) - decisions that have already been argued about. Do not relitigate them
    without a new ADR.
-4. [docs/phases/M4.md](docs/phases/M4.md) - planned scoring/reports, dependency order and acceptance;
-   preserve [M3 evidence contracts](docs/phases/M3.md) and accepted ADR 0004. ADR 0005 remains proposed.
+4. [docs/phases/M4.md](docs/phases/M4.md) - implemented scoring/reports, dependency order and acceptance;
+   preserve [M3 evidence contracts](docs/phases/M3.md) and accepted ADRs 0004/0005. Read
+   [M4 validation](docs/testing/m4-validation.md) for actual evidence and pending CI.
 5. [docs/DEVELOPMENT-TOOLS.md](docs/DEVELOPMENT-TOOLS.md) - CodeGraph freshness, static-analysis coverage
    and profiling appropriate to this repository's runtime.
 
@@ -29,6 +30,10 @@ cd SchemaSentry
 make bootstrap   # install tooling and dependencies
 make test        # unit tests
 make lint        # formatting and static analysis
+make type        # strict source typing
+make build       # real wheel build; bootstrap installs its declared build tools
+make check-docs  # generated rule pages and public schemas
+make audit       # hashed runtime dependency audit; requires uv/uvx
 ```
 
 ## Code navigation

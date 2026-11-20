@@ -33,6 +33,7 @@ jobs:
         run: |
           pip install --require-hashes -r requirements.lock
           pip install -e ".[dev]"
+          pip install "setuptools>=75" wheel
 
       - name: Lint
         run: ruff check .
@@ -42,6 +43,12 @@ jobs:
 
       - name: Type check
         run: mypy src
+
+      - name: Public documentation and schemas
+        run: make check-docs
+
+      - name: Package build
+        run: make build
 
       - name: Test
         run: pytest --cov=src --cov-report=term-missing
