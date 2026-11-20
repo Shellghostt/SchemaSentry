@@ -1,0 +1,14 @@
+{
+  "analysisStatus": "complete",
+  "overallRisk": "high",
+  "exitHigh": 1,
+  "findings": [
+    {
+      "ruleId": "SS009",
+      "kind": "index_build_blocks_writes",
+      "baseSeverity": "high",
+      "finalRisk": "high",
+      "confidence": "high"
+    }
+  ]
+}
