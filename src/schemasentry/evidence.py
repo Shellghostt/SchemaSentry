@@ -10,7 +10,9 @@ from pydantic.alias_generators import to_camel
 Severity = Literal["low", "medium", "high", "critical"]
 Confidence = Literal["high", "low"]
 Effect = Literal["required", "not_required", "unknown"]
-LockLevel = Literal["access_exclusive", "unknown"]
+LockLevel = Literal[
+    "access_exclusive", "share", "share_row_exclusive", "share_update_exclusive", "unknown"
+]
 
 
 class EvidenceModel(BaseModel):

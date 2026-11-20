@@ -1,0 +1,14 @@
+{
+  "analysisStatus": "complete",
+  "overallRisk": "critical",
+  "exitHigh": 2,
+  "findings": [
+    {
+      "ruleId": "SS010",
+      "kind": "enum_labels_removed",
+      "baseSeverity": "critical",
+      "finalRisk": "critical",
+      "confidence": "high"
+    }
+  ]
+}

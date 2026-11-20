@@ -9,6 +9,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
+- M4 SS008–SS010 rules for eligible CHECK/FK validation, ordinary/concurrent index builds and known enum
+  membership changes. Accepted [ADR 0005](docs/adr/0005-m4-risk-and-report-contract.md) governs their evidence.
+- Public `compare`, offline `rules`/`explain`, deterministic capped risk scoring and versioned JSON/escaped
+  Markdown reports. Base severity, confidence, known/unknown modifiers and incomplete analysis stay distinct;
+  `estimatedSeconds` remains null. Checked output and atomic files protect selected inputs.
+- Opt-in snapshot v1 `catalogEvidence`, collected in the existing read-only transaction, with typed
+  validation/enum/relation facts, complete incoming FKs to scoped targets and explicit dependency gaps.
+- Nine reviewed M4 corpus cases (68 total), Markdown goldens, live PG13/15/16 catalog/CLI tests, resource
+  boundaries, installed-runtime checks and a 500-table/repeated-lifecycle profile.
+  [M4 validation](docs/testing/m4-validation.md) records passing local gates and branch/PR GitHub CI.
+- Registry-derived ten-rule pages and schema drift checks, plus real `make build`, `make audit`, `make docs`
+  and `make check-docs` targets. CI checks generated documentation and builds packages on Python 3.12/3.13.
 - Internal SS001–SS007 classification with immutable deterministic findings, explicit uncertainty
   notices and separate DDL lock/scan/rewrite evidence.
 - Bounded SQLGlot PostgreSQL evidence parsing with original statement locations and visible unsupported
@@ -27,6 +39,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Changed
 
+- M4 canonicalizes validated evidence before producing reports and uses a supported immutable M3 evidence
+  view for confirmed mixed migrations. The default M3 classifier/parser and M2 structural output remain
+  unchanged. Default snapshot output omits the new optional catalog field.
 - Canonical Make targets select the Windows/POSIX virtualenv interpreter directly and quote its path;
   lint checks formatting as well as diagnostics. SQLGlot's declaration matches the reviewed 30.31 series.
 - Ruff explicitly recognizes the package as first-party, keeping test imports consistent before and
@@ -39,7 +54,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Planned
 
-- M4: risk scoring, public classification reports, thresholds, `compare`/`explain` and SS008–SS010.
+- M5: GitHub Action/comment publication and broader migration-directory integration.
+- M6: MySQL and calibrated migration performance analysis.
 
 ## [0.1.0] - 2026-11-13
 

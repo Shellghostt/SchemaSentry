@@ -12,7 +12,7 @@ depends_on:
   - PostgreSQL 13+ (first supported dialect)
   - Python 3.12+
 created: 2026-11-13
-updated: 2026-11-15
+updated: 2026-11-21
 ---
 
 # SchemaSentry — Implementation Plan
@@ -23,19 +23,25 @@ updated: 2026-11-15
 
 ## 0. Machine context
 
-M2 is complete and merged into `main`; M3 is **complete, including branch and PR CI**, on
-`feat/m3-implementation`. [ADR 0004](adr/0004-m3-classification-evidence.md) defines the internal
+M1–M3 are complete and merged into `main`. [M3 PR #3](https://github.com/Shellghostt/SchemaSentry/pull/3)
+merged at `3c76af15670643640cb0efef4d1ab9a49956ca73`, with successful
+[main CI](https://github.com/Shellghostt/SchemaSentry/actions/runs/43744133540).
+[ADR 0004](adr/0004-m3-classification-evidence.md) defines the internal
 evidence API. The [M3 requirements](phases/M3.md) and [validation record](testing/m3-validation.md)
 record 59 reviewed cases, live PG13/15/16 evidence and canonical local gates.
-The [development-tool audit](DEVELOPMENT-TOOLS.md) records profiling limits. No M3 release or merge
-is claimed; public reports and risk scoring remain M4.
+The [development-tool audit](DEVELOPMENT-TOOLS.md) records profiling limits. No new release is claimed.
+M4 is **implemented and verified on `feat/m4-implementation`, including GitHub CI**. Accepted
+[ADR 0005](adr/0005-m4-risk-and-report-contract.md), [M4 requirements](phases/M4.md) and
+[validation](testing/m4-validation.md) define the ten-rule public assessment, catalog extension and
+report policy. [PR #4](https://github.com/Shellghostt/SchemaSentry/pull/4) is open; branch/PR CI passed
+all six jobs for `de44a2b`. M4 is not merged or released.
 
 ```yaml
 project: SchemaSentry
 status: mvp
 version: 0.1.0
 builds: true
-functional: partial            # M1/M2 and internal M3 work; public risk/report flow remains M4
+functional: true               # M4 assessment is locally/CI verified; PR #4 is open
 
 implemented:
   - typer cli with version, snapshot and structural diff
@@ -49,17 +55,21 @@ implemented:
   - bounded/validated snapshot loading and warnings for legacy evidence
   - read-only REPEATABLE READ capture and full index ordering/collation/opclass metadata
   - hashed runtime dependencies and feature-branch CI
-  - exit codes 0, 3 and 4 (1 and 2 belong to the risk milestones)
+  - structural exits 0/3/4 and public assessment exits 0/1/2/3/4
   - internal deterministic classification registry SS001-SS007 with evidence and limitations
   - bounded SQLGlot PostgreSQL evidence parser with visible unsupported/errors and no SQL execution
   - strict JSON v1 one-to-one column rename hints inside classification
   - 59 reviewed corpus cases and disposable live PG13/15/16 classification evidence
   - native Python lifecycle profiling and installed Docker runtime checks
+  - opt-in versioned M4 catalog evidence for constraints, enums, relations and incoming FKs
+  - SS008-SS010 and ten-rule M4 assessment; seven-rule M3 classification remains compatible
+  - deterministic capped risk scoring with explicit unknown modifiers and null estimatedSeconds
+  - public compare, rules and explain with offline/live input precedence
+  - bounded versioned JSON and escaped Markdown with checked atomic output
+  - 68 reviewed corpus cases and complete/hostile Markdown goldens
+  - registry-derived rule pages and schema drift checks; real package build target
 
 not_implemented:
-  - risk scoring
-  - public markdown and json classification reports
-  - compare, explain and rules commands
   - migration-to-snapshot prediction and broader parser integration
   - ownership hints and hint format v2
   - github action
@@ -67,11 +77,12 @@ not_implemented:
 
 source_of_truth:
   scope_and_rules: docs/PLAN.md        # this file, section 9
-  accuracy_contract: tests/corpus/     # a rule change that breaks a case is wrong
+  accuracy_contract: tests/corpus/ and tests/corpus-m4/
   architecture: docs/ARCHITECTURE.md
   decisions: docs/adr/
   status: README.md#roadmap
   snapshot_contract: docs/schema/snapshot-v1.schema.json
+  report_contract: docs/schema/report-v1.schema.json
 
 forbidden_claims:
   - "detects all dangerous migrations"
@@ -82,15 +93,16 @@ forbidden_claims:
 if_uncertain:
   - add a corpus case before changing a rule
   - if lock behaviour is version-dependent, cite the PostgreSQL version in the rule
-  - never estimate a duration without row counts; say "unknown" instead
+  - estimatedSeconds stays null without a separately accepted calibrated model and required evidence
 ```
 
 ---
 
 ## 1. What this is
 
-A CLI and CI gate that compares the schema you have with the schema a migration will produce, classifies
-each difference, and scores the risk before the migration touches production.
+A CLI that compares a baseline with supplied/observed after-state snapshots, classifies changes and
+explains policy risk. Staging captures can support review before production deployment. SQL is bounded
+secondary evidence; no command applies it or predicts an after state.
 
 One-line description: *Detect dangerous database schema changes before they reach production.*
 
@@ -131,7 +143,7 @@ column and the safest alternative pattern.
 
 ### v0.1 — MVP (M1–M4)
 
-PostgreSQL only. Snapshot, compare two snapshots, classify seven rules, score risk, Markdown and JSON
+PostgreSQL only. Snapshot, compare two snapshots, classify SS001–SS010, score risk, Markdown and JSON
 report, documented exit codes.
 
 ### v1.0 (M5–M6)
@@ -166,28 +178,27 @@ unauditable), Go (weaker SQL parsing ecosystem at the time of writing).
 
 ## 6. Architecture
 
+The implemented M4 flow compares supplied snapshots or an observed live after state. Migration-directory
+handling remains M5; future prediction requires a separately accepted contract. Component responsibilities
+and the immutable legacy evidence view are in [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ```mermaid
 flowchart LR
-    DB[(Database)] --> INTRO[Schema introspection]
-    MIG[Migration files] --> PARSE[Migration parser]
-    INTRO --> NORM[Normalised snapshot]
-    PARSE --> NORM2[Predicted snapshot]
-    NORM --> CMP[Schema comparator]
-    NORM2 --> CMP
+    DB[(Database)] --> INTRO[Read-only catalog capture]
+    MIG[One migration file] --> PARSE[Bounded SQL evidence]
+    INTRO --> NORM[Before and after snapshots]
+    NORM --> CMP[Structural comparator]
     CMP --> CLASS[Change classification]
+    NORM --> CLASS
+    PARSE --> CLASS
     CLASS --> RISK[Risk scoring]
     RISK --> REP[Markdown / JSON report]
     REP --> CI[CI exit code]
 ```
 
-**Two modes, one engine:**
-
-1. **Diff mode** — compare two snapshot files (`--before`, `--after`). No database needed.
-2. **Predict mode** — snapshot the live database, parse migration files, apply the *schema delta* to the
-   snapshot in memory, compare. No migration is executed. Ever.
-
-Mode 2 is best-effort by design: SQL that cannot be modelled statically is reported as
-`unanalysable_statement` with the raw text, and the run exits `1` unless `--allow-unanalysable` is set.
+`diff --before FILE --after FILE` retains structural JSON and success exit 0. Public
+`compare --baseline FILE (--after FILE | --database URL)` applies M4 classification/scoring to supplied
+or observed states. Unsupported SQL stays visible; it cannot become a silently clean report.
 
 ---
 
@@ -244,29 +255,39 @@ Mode 2 is best-effort by design: SQL that cannot be modelled statically is repor
 ```
 
 Row estimates come from `pg_class.reltuples`; when the table has never been analysed, `rowEstimate` is `null`
-and every size-dependent rule reports `confidence: low` instead of guessing.
+and the size modifier is explicitly unknown instead of guessed. Confidence remains a separate
+classification-evidence property.
 
 The machine-readable contract is `docs/schema/snapshot-v1.schema.json`, and a test validates a real
-captured snapshot against it. It adds three fields to the example above, each because the shorter form
+captured snapshot against it. It adds evidence fields to the example above, each because the shorter form
 would state something false: `generationExpression` on a generated column, `referencedTable` and
 `referencedColumns` on a foreign key, and `expression` on an index. See ADR 0002.
 
-**Finding** (`expected.json` in the corpus):
+**Public report v1 (abridged):**
+
+The full [report schema](schema/report-v1.schema.json) includes required provenance, effects, evidence,
+modifiers, alternatives and notices. Every nullable output field is present. M3 corpus files retain their
+separate internal finding format; the public report follows accepted [ADR 0005](adr/0005-m4-risk-and-report-contract.md).
 
 ```json
 {
-  "changes": [
+  "schemaVersion": 1,
+  "policyVersion": 1,
+  "toolVersion": "0.1.0",
+  "analysisStatus": "complete",
+  "threshold": "high",
+  "overallRisk": "critical",
+  "findings": [
     {
       "ruleId": "SS001",
-      "severity": "critical",
-      "object": "users.email",
-      "change": "column_removed",
-      "details": { "type": "varchar(255)", "nullable": false }
+      "baseSeverity": "critical",
+      "finalRisk": "critical",
+      "confidence": "high",
+      "object": "email",
+      "kind": "column_removed",
+      "estimatedSeconds": null
     }
-  ],
-  "risk": "critical",
-  "exitCode": 2,
-  "lock": { "level": "access_exclusive", "rewritesTable": false, "estimatedSeconds": null }
+  ]
 }
 ```
 
@@ -275,10 +296,11 @@ would state something false: `generationExpression` on a generated column, `refe
 ## 8. Command surface and exit codes
 
 ```
-schemasentry snapshot  --database URL --output snap.json
-schemasentry compare   --baseline snap.json --database URL [--migrations ./migrations]
-                       --format markdown|json --fail-on low|medium|high|critical
-schemasentry diff      --before a.json --after b.json [--format ...]
+schemasentry snapshot  --database URL --output snap.json [--analysis-evidence]
+schemasentry compare   --baseline snap.json (--after after.json | --database URL) [--migration migration.sql]
+                       [--hints hints.json] [--default-schema public]
+                       [--format markdown|json] [--threshold low|medium|high|critical] [--output FILE]
+schemasentry diff      --before a.json --after b.json
 schemasentry explain   <rule-id>
 schemasentry rules     [--json]
 schemasentry version
@@ -286,25 +308,30 @@ schemasentry version
 
 | Exit code | Meaning |
 |---|---|
-| 0 | No finding at or above `--fail-on` (default `high`) |
-| 1 | Threshold crossed (report printed) |
-| 2 | Blocking risk found (`critical`) |
-| 3 | Tool error: connection, parse failure, unsupported dialect |
+| 0 | Complete analysis below `--threshold` (default high); no general safety claim |
+| 1 | Complete report crosses the threshold without critical risk |
+| 2 | Complete report has critical/blocking risk, regardless of threshold |
+| 3 | Tool/input/output failure or incomplete required analysis |
 | 4 | Invalid usage |
 
-`--database` is read from the environment by default (`SCHEMASENTRY_DATABASE_URL`), never from a flag in CI
-logs. The tool opens a read-only transaction and sets `statement_timeout = 5s`.
+For live capture, `SCHEMASENTRY_DATABASE_URL` supplies the URL when no explicit database is selected.
+Explicit `--after` is fully offline and ignores that environment URL; it conflicts with explicit database/
+captured-at arguments. Explicit empty database arguments are usage errors. Capture remains read-only
+REPEATABLE READ with `statement_timeout = 5s`; live compare uses the baseline scope.
 
-Implemented in M2: `snapshot`, `diff --before FILE --after FILE` and `version`. Diff prints structural
-JSON and exits 0 even with changes. M3 classification is an internal library API; thresholds and
-public reports remain M4, and codes 1 and 2 are unreachable through M3. Input is capped at 64 MiB;
-malformed/ambiguous input exits 3. See [M3 validation](testing/m3-validation.md) for the evidence API.
+Snapshot/diff/version and the default seven-rule M3 library API retain their meanings. Diff exits 0 even
+with changes. M4 adds compare/rules/explain; incomplete analysis precedes critical and threshold exits.
+Snapshots remain capped at 64 MiB, migration SQL at 256 KiB/128 statements/20,000 tokens/64 levels and
+hints at 64 KiB/128 mappings. M4 additionally caps combined objects at 200,000, findings at 10,000,
+notices at 2,048, dynamic strings at 256 KiB and either report at 16 MiB. Output is checked and atomic.
+See [M4 validation](testing/m4-validation.md). Directory input remains M5.
 
 ---
 
 ## 9. Rules
 
-Stable ids. One page each in `docs/rules/`. Every rule has at least one corpus case.
+Stable IDs. [Rule pages](rules/README.md) derive from the same metadata as offline commands.
+All ten have reviewed corpus coverage. The table lists policy defaults; some findings use conditional severities.
 
 | ID | Detects | Base severity | Notes |
 |---|---|---|---|
@@ -315,15 +342,15 @@ Stable ids. One page each in `docs/rules/`. Every rule has at least one corpus c
 | SS005 | Locking or rewriting statement | high | `ALTER TYPE`, `SET NOT NULL`, `ADD COLUMN ... DEFAULT`, `VACUUM FULL` |
 | SS006 | Rename appearing as drop + add | high | Requires a rename hint file, otherwise data loss risk |
 | SS007 | Known volatile default or unknown function volatility | medium | Nonliteral does not imply volatile; PG11+ non-volatile ADD COLUMN defaults can avoid rewrite |
-| SS008 | Constraint added without `NOT VALID` | medium | M4; supported CHECK/FK constraints can be validated separately |
-| SS009 | Index created without `CONCURRENTLY` | medium | M4; blocks writes for the duration of the build |
-| SS010 | Enum value removed or renamed | high | M4; PostgreSQL has no direct enum-value removal operation |
+| SS008 | Eligible CHECK/FK addition or validation | high | Ordinary relation/validation facts and requested SQL must bind; NOT VALID retains locks |
+| SS009 | Index build mode and blocking requests | high | Ordinary build blocks writes; forbidden concurrent transaction/partition requests are critical |
+| SS010 | Known enum membership removal or rename | critical | Removal is critical; supported rename is high; no direct DROP VALUE |
 
 **Type-change nuance for SS002** (the rule must not cry wolf):
 
 | Change | Verdict |
 |---|---|
-| `varchar(50)` → `varchar(100)` | safe, no rewrite |
+| `varchar(50)` → `varchar(100)` | No SS002 finding when the reviewed evidence prerequisites hold; no general safety claim |
 | `varchar(100)` → `varchar(50)` | high, data truncation |
 | `int` → `bigint` | medium, table rewrite |
 | `bigint` → `int` | high, overflow risk |
@@ -334,25 +361,30 @@ Stable ids. One page each in `docs/rules/`. Every rule has at least one corpus c
 Base severities are policy; cast/lock/rewrite claims require version-specific evidence. USING expressions,
 unknown types and user-function volatility must not be treated as safe by inference. See [M3 requirements](phases/M3.md).
 
-**Risk scoring.** `risk = max(base severity, size modifier, lock modifier)`, then one level up if the object is
-referenced by a foreign key or a unique constraint.
+**Implemented risk policy v1.** Accepted [ADR 0005](adr/0005-m4-risk-and-report-contract.md) defines
+`min(3, base rank + size contribution + FK contribution)`, with low/medium/high/critical ranks 0/1/2/3.
+Overall risk is the maximum scored finding, or null with no findings. Confidence and unknown prerequisites
+remain separate; optional modifier gaps do not manufacture a bump or lower base severity.
 
 | Modifier | Condition |
 |---|---|
-| +1 level | table is referenced by 2+ foreign keys |
-| +1 level | `rowEstimate > 1,000,000` |
+| +1 level | At least two distinct incoming named FKs target the finding's captured table, including outside-schema sources |
+| +1 level | `1,000,000 < rowEstimate <= 20,000,000` |
 | +2 levels | `rowEstimate > 20,000,000` |
-| +1 level | operation takes ACCESS EXCLUSIVE and table is read by another service (declared in hints) |
+| Unavailable under hints v1 | Service-reader lock modifier needs separately accepted ownership evidence |
 
-`estimatedSeconds` is only produced when `rowEstimate` is known **and** the statement is a rewrite; otherwise
-`null`. A null is honest; a guess is not.
+`estimatedSeconds` requires a supported rewrite, relevant size evidence **and** a measured/documented
+estimation model; row estimates alone cannot produce seconds. It remains null in M4 without that model.
+The existing rename-hints v1 cannot declare service readers. See [M4 requirements](phases/M4.md) for
+size-tier boundaries, missing metadata, confidence and modifier deduplication.
 
 **Every finding carries a `safeAlternative`** where one exists:
 
 - SS001 → expand/contract: stop reading the column, deploy, then drop in a later migration.
 - SS003 → add a CHECK `(column IS NOT NULL) NOT VALID`, validate it, then SET NOT NULL where the
   server can use that proof. NOT VALID cannot be applied directly to NOT NULL; document locks per step.
-- SS009 → `CREATE INDEX CONCURRENTLY`.
+- SS009 → `CREATE INDEX CONCURRENTLY` where supported and outside an explicit transaction block;
+  document extra work, invalid-index cleanup and partition/version restrictions.
 - SS006 → rename hint file, or expand/contract.
 
 ---
@@ -368,10 +400,18 @@ schemasentry/
 │   ├── diff.py             structural comparison
 │   ├── rules/              one module per rule id
 │   ├── dialects/           postgres.py, mysql.py (M6)
-│   ├── hints.py            rename and ownership hints
-│   └── report/             markdown.py, json.py
+│   ├── hints.py            rename-hints v1; ownership unavailable
+│   ├── catalog_models.py  versioned M4 facts and consistency validation
+│   ├── catalog_capture.py read-only bounded evidence queries
+│   ├── m4_migration.py    M4 parser and immutable legacy evidence view
+│   ├── assessment.py      scoring, completeness, provenance and exits
+│   ├── registry.py        offline metadata and generated rule pages
+│   ├── report.py          JSON and escaped Markdown
+│   └── report_io.py       checked/atomic publication
 ├── tests/
-│   ├── corpus/             the accuracy contract
+│   ├── corpus/             59 M3 oracles
+│   ├── corpus-m4/          nine reviewed M4 oracles
+│   ├── golden/             complete/hostile Markdown templates
 │   ├── fixtures/           snapshot pairs
 │   ├── unit/
 │   └── integration/        real Postgres in docker
@@ -427,7 +467,7 @@ baseline. PG13 remains compatibility coverage, not a recommendation to deploy an
 
 **Deliverable:** rules SS001–SS007, validated rename hints and minimal SQL evidence parsing with corpus cases.
 
-Status: **Complete on `feat/m3-implementation`, including branch and PR CI**.
+Status: **Complete and merged into main**, including branch, PR and merged-main CI.
 Follow [M3 requirements](phases/M3.md) and [ADR 0004](adr/0004-m3-classification-evidence.md);
 public reports and thresholds remain M4. SS-013–SS-020, including SS-013A, are implemented.
 
@@ -452,13 +492,26 @@ for `b73f9db`: Python 3.12/3.13, PG13/15/16 integration and dependency audit.
 
 **Deliverable:** rules SS008–SS010, risk levels, Markdown and JSON reports, exit codes, `compare` and `explain`.
 
+Status: **Complete and verified locally/in GitHub CI; PR #4 is open.** Accepted
+[ADR 0005](adr/0005-m4-risk-and-report-contract.md) was committed before code; the nine reviewed M4
+oracles were committed before dependent rule implementation. SS-020A and SS-021–SS-025 are implemented.
+Read [M4 requirements](phases/M4.md) and [validation](testing/m4-validation.md).
+
 **Acceptance criteria**
 
-- [ ] Risk modifiers applied and unit-tested at boundary row counts
-- [ ] `estimatedSeconds` is null unless row count and rewrite are both known
-- [ ] Markdown report matches the documented template, including safe alternatives
-- [ ] Exit codes match section 8 exactly
-- [ ] Report is byte-identical across runs for identical input
+- [x] SS008–SS010 have reviewed positive/negative/edge and unknown-evidence cases with correct PostgreSQL caveats
+- [x] All 59 M3 cases are retained and nine new rule cases bring the corpus to 68; runtime stays <60 s
+- [x] Risk formula, distinct modifiers and aggregation are tested at exact size/FK boundaries and unknown evidence
+- [x] `estimatedSeconds` is null without a measured estimation model
+- [x] Markdown report matches the complete/hostile goldens, including conditional alternatives
+- [x] Public compare/explain/rules and incomplete-analysis exits match section 8; structural diff remains unchanged
+- [x] Report is byte-identical across runs and shuffled validated catalog inputs
+- [x] Public schema, input/output bounds, enum compatibility, read-only catalog and local canonical gates pass
+- [x] Python 3.12/3.13 and PostgreSQL 13/15/16 GitHub CI passed after publication for `de44a2b`
+
+Branch [44797738740](https://github.com/Shellghostt/SchemaSentry/actions/runs/44797738740) and PR
+[44797752285](https://github.com/Shellghostt/SchemaSentry/actions/runs/44797752285) each passed all six
+jobs, including documentation/schema checks and package builds. Merge remains a separate decision.
 
 ### M5 — GitHub Action
 
@@ -512,11 +565,11 @@ for `b73f9db`: Python 3.12/3.13, PG13/15/16 integration and dependency audit.
 | SS-019 | SS006 rename hints | SS-013 | M3 |
 | SS-020 | SS007 default volatility/version evidence | SS-013A | M3 |
 | SS-020A | SS008–SS010 constraints/indexes/enums and corpus cases | SS-020 | M4 |
-| SS-021 | Risk scoring engine | SS-014 | M4 |
+| SS-021 | Pure risk scorer and explicit completeness/threshold policy | SS-020A | M4 |
 | SS-022 | Markdown renderer | SS-021 | M4 |
-| SS-023 | JSON renderer and determinism tests | SS-021 | M4 |
-| SS-024 | `explain` command and rule docs | SS-013 | M4 |
-| SS-025 | Corpus expansion to 60 cases | SS-020 | M4 |
+| SS-023 | Versioned JSON, determinism and public `compare` CLI | SS-021, SS-022 | M4 |
+| SS-024 | Offline `explain`/`rules` commands and registry-derived docs | SS-020A | M4 |
+| SS-025 | Corpus beyond 60 cases and end-to-end report/threshold checks | SS-020A, SS-023, SS-024 | M4 |
 | SS-026 | Broader migration parser integration for CI (minimal parser is SS-013A) | SS-013A | M5 |
 | SS-027 | GitHub Action and PR comment | SS-022 | M5 |
 | SS-028 | Baseline convention and docs | SS-027 | M5 |
@@ -542,11 +595,11 @@ for `b73f9db`: Python 3.12/3.13, PG13/15/16 integration and dependency audit.
 
 | Threat | Mitigation |
 |---|---|
-| Tool writes to the database | Read-only transaction, no DDL/DML in the codebase, test asserts no write statements |
-| Credentials leak into reports | DSN never serialised; connection info reduced to host/database name |
+| Tool writes to the database | Product capture uses read-only transactions; generated fixture DDL runs only in owned test databases |
+| Credentials leak into reports | Configured DSNs are absent; report provenance contains versions, capture timestamps and canonical input digests |
 | Malicious SQL in a migration file | Files are parsed, never executed |
 | Supply chain | `pip-audit` in CI, pinned lockfile |
-| Report injection in PR comments | Markdown escaped; no raw SQL in comment bodies beyond a fenced block |
+| Report injection | Dynamic Markdown/HTML/links/fences and format/bidi controls are escaped; M5 publication remains future work |
 
 ---
 
@@ -554,15 +607,15 @@ for `b73f9db`: Python 3.12/3.13, PG13/15/16 integration and dependency audit.
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Static prediction diverges from real DDL | Wrong risk score | Report `confidence`; corpus grows with every bug report |
+| Requested SQL differs from observed states | Wrong effect inference | Bind evidence explicitly and report incomplete analysis |
 | Lock behaviour differs across PG versions | Bad estimates | Version-aware rule table, cited in docs |
-| False positives annoy users | Tool disabled in CI | Conservative defaults, `--fail-on`, safe alternatives in every finding |
+| False positives annoy users | Tool disabled in CI | Explicit confidence/threshold policy and conditional alternatives |
 | Dialect abstraction leaks | MySQL becomes a fork | Dialect interface defined in M1, proven in M6 |
 
 **Open questions:**
 
 1. Should baseline snapshots be stored in the repo or as CI artifacts? *Current: repo, reviewable.*
-2. Do we support `--fail-on medium`? *Current: yes, thresholds are a user policy.*
+2. Are medium thresholds supported? *Yes: M4 uses `--threshold medium`; M5's Action `fail-on` remains planned.*
 3. Is a hints file the right mechanism for renames, or should we infer from column comments? *Current: hints
    file, explicit and reviewable.*
 
@@ -572,16 +625,19 @@ for `b73f9db`: Python 3.12/3.13, PG13/15/16 integration and dependency audit.
 
 **Facts:** the package imports, `schemasentry version` prints `0.1.0`, and `schemasentry snapshot`
 captures a deterministic JSON snapshot of a PostgreSQL 13 to 17 database through a read-only
-transaction. M2 compares snapshot structure with deterministic JSON and 30 fixture pairs. There is
-no classification rule, risk score, Markdown report or migration corpus case.
+transaction. M2 compares snapshot structure with deterministic JSON and 30 fixture pairs. M3 adds
+internal SS001–SS007 classification, bounded SQL/rename-hint evidence and 59 reviewed corpus cases.
+M4 adds SS008–SS010, capped risk scoring, versioned reports and compare/rules/explain. Local gates and
+installed-runtime checks and GitHub Python/PG CI pass. It performs no migration execution or prediction.
 
 **Rules:**
 
 1. Never say a migration is safe. Report risk and evidence.
 2. A rule without a corpus case does not exist, even if the code exists.
-3. Never invent `estimatedSeconds`. Null is the correct answer when row counts are unknown.
+3. Never invent `estimatedSeconds`. It remains null throughout M4, including with known row estimates.
 4. Do not claim support for a PostgreSQL version that is not in the CI matrix.
-5. SQL that cannot be modelled must appear as `unanalysable_statement`, never be dropped.
+5. SQL outside the supported evidence subset stays visible and incomplete. A supported M4 statement
+   supersedes only its own legacy unsupported location; other statements remain unanalysable.
 6. Update the rule table, README roadmap and CHANGELOG in the same pull request.
 
 **Glossary:**
@@ -601,8 +657,10 @@ no classification rule, risk score, Markdown report or migration corpus case.
 ## 17. Handoff protocol
 
 1. Read sections 0, 3 and 9.
-2. Run `make bootstrap`, `make test`, `make lint` and `make type`; use a disposable server for live evidence.
-3. M1/M2 are merged and M3 is complete on the feature branch with CI. Read [M3 requirements](phases/M3.md),
-   [ADR 0004](adr/0004-m3-classification-evidence.md) and [validation](testing/m3-validation.md) before M4 work.
+2. Run `make bootstrap`, `make test`, `make lint`, `make type`, `make build`, `make check-docs` and
+   `make audit`; use a disposable server for live evidence.
+3. M1–M3 are merged with successful main CI. M4 is locally/CI verified on its feature branch. Read
+   [M4 requirements](phases/M4.md), accepted ADR 0005 and [validation](testing/m4-validation.md), then
+   preserve the implemented [M3 contract](phases/M3.md). Recheck the latest PR head before the merge decision.
 4. Before changing a rule, add the corpus case that proves the change.
 5. If a finding is wrong, the fix is a new case plus a rule change — never a special case in the renderer.

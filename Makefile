@@ -7,11 +7,11 @@ else
 VENV_PY := $(VENV)/bin/python
 endif
 
-.PHONY: bootstrap fmt lint type test cov integration build docker db-up db-down clean
+.PHONY: bootstrap fmt lint type test cov integration build audit docs check-docs docker db-up db-down clean
 
 bootstrap:
 	$(PY) -m venv "$(VENV)"
-	"$(VENV_PY)" -m pip install --upgrade pip
+	"$(VENV_PY)" -m pip install --upgrade pip "setuptools>=75" wheel
 	"$(VENV_PY)" -m pip install -e ".[dev]"
 
 fmt:
@@ -32,6 +32,18 @@ cov:
 
 integration:
 	"$(VENV_PY)" -m pytest tests/integration
+
+build:
+	"$(VENV_PY)" -m pip wheel --no-deps --no-build-isolation --wheel-dir dist .
+
+audit:
+	uvx pip-audit --strict --disable-pip --require-hashes -r requirements.lock
+
+docs:
+	"$(VENV_PY)" scripts/generate_docs.py
+
+check-docs:
+	"$(VENV_PY)" scripts/generate_docs.py --check
 
 db-up:
 	docker compose -f deploy/docker-compose.yml up -d postgres

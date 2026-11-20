@@ -26,6 +26,8 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
+from schemasentry.catalog_models import CatalogEvidence
+
 SNAPSHOT_SCHEMA_VERSION = 1
 
 
@@ -124,6 +126,7 @@ class Snapshot(SnapshotModel):
     tables: list[Table]
     sequences: list[Sequence]
     extensions: list[str]
+    catalog_evidence: CatalogEvidence | None = None
 
 
 def sort_snapshot(snapshot: Snapshot) -> Snapshot:
@@ -156,13 +159,19 @@ def sort_snapshot(snapshot: Snapshot) -> Snapshot:
             "tables": tables,
             "sequences": sequences,
             "extensions": sorted(snapshot.extensions),
+            "catalog_evidence": (
+                snapshot.catalog_evidence.canonical() if snapshot.catalog_evidence else None
+            ),
         }
     )
 
 
 def to_payload(snapshot: Snapshot) -> dict[str, Any]:
     """Return the JSON-ready object, in canonical order."""
-    return sort_snapshot(snapshot).model_dump(by_alias=True, mode="json")
+    payload = sort_snapshot(snapshot).model_dump(by_alias=True, mode="json")
+    if snapshot.catalog_evidence is None:
+        payload.pop("catalogEvidence", None)
+    return payload
 
 
 def to_json(snapshot: Snapshot) -> str:

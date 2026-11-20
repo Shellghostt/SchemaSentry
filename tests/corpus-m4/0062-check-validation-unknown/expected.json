@@ -1,0 +1,14 @@
+{
+  "analysisStatus": "incomplete",
+  "overallRisk": "high",
+  "exitHigh": 3,
+  "findings": [
+    {
+      "ruleId": "SS008",
+      "kind": "constraint_validation_unknown",
+      "baseSeverity": "high",
+      "finalRisk": "high",
+      "confidence": "low"
+    }
+  ]
+}

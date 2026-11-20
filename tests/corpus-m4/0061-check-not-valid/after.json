@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "dialect": "postgres",
+  "serverVersion": "16.4",
+  "capturedAt": "2026-11-17T00:00:00Z",
+  "database": "m4_fixture",
+  "schemas": [
+    "public"
+  ],
+  "tables": [
+    {
+      "schema": "public",
+      "name": "users",
+      "rowEstimate": 0,
+      "totalBytes": 0,
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 1,
+          "type": "integer",
+          "normalisedType": "integer",
+          "length": null,
+          "nullable": false,
+          "default": null,
+          "identity": false,
+          "generated": null,
+          "generationExpression": null
+        },
+        {
+          "name": "amount",
+          "ordinal": 2,
+          "type": "integer",
+          "normalisedType": "integer",
+          "length": null,
+          "nullable": false,
+          "default": null,
+          "identity": false,
+          "generated": null,
+          "generationExpression": null
+        }
+      ],
+      "constraints": [
+        {
+          "name": "amount_positive",
+          "kind": "check",
+          "columns": [
+            "amount"
+          ],
+          "referencedTable": null,
+          "referencedColumns": [],
+          "definition": "CHECK (amount > 0) NOT VALID"
+        }
+      ],
+      "indexes": []
+    }
+  ],
+  "sequences": [],
+  "extensions": [],
+  "catalogEvidence": {
+    "evidenceVersion": 1,
+    "scopeSchemas": [
+      "public"
+    ],
+    "relations": [
+      {
+        "schema": "public",
+        "table": "users",
+        "kind": "ordinary"
+      }
+    ],
+    "constraintValidity": [
+      {
+        "schema": "public",
+        "table": "users",
+        "name": "amount_positive",
+        "kind": "check",
+        "validated": false
+      }
+    ],
+    "enums": [],
+    "enumColumns": [],
+    "incomingForeignKeys": []
+  }
+}
