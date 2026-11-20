@@ -18,7 +18,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   validation/enum/relation facts, complete incoming FKs to scoped targets and explicit dependency gaps.
 - Nine reviewed M4 corpus cases (68 total), Markdown goldens, live PG13/15/16 catalog/CLI tests, resource
   boundaries, installed-runtime checks and a 500-table/repeated-lifecycle profile.
-  [M4 validation](docs/testing/m4-validation.md) records passing local gates; GitHub CI awaits publication.
+  [M4 validation](docs/testing/m4-validation.md) records passing local gates and branch/PR GitHub CI.
 - Registry-derived ten-rule pages and schema drift checks, plus real `make build`, `make audit`, `make docs`
   and `make check-docs` targets. CI checks generated documentation and builds packages on Python 3.12/3.13.
 - Internal SS001–SS007 classification with immutable deterministic findings, explicit uncertainty

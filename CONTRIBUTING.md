@@ -11,7 +11,7 @@ Thanks for taking the time. This document is deliberately short and specific.
    without a new ADR.
 4. [docs/phases/M4.md](docs/phases/M4.md) - implemented scoring/reports, dependency order and acceptance;
    preserve [M3 evidence contracts](docs/phases/M3.md) and accepted ADRs 0004/0005. Read
-   [M4 validation](docs/testing/m4-validation.md) for actual evidence and pending CI.
+   [M4 validation](docs/testing/m4-validation.md) for actual local/CI evidence and limitations.
 5. [docs/DEVELOPMENT-TOOLS.md](docs/DEVELOPMENT-TOOLS.md) - CodeGraph freshness, static-analysis coverage
    and profiling appropriate to this repository's runtime.
 

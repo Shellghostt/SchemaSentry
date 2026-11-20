@@ -2,11 +2,12 @@
 
 > Detect dangerous database schema changes before they reach production.
 
-![status](https://img.shields.io/badge/status-M4_locally_verified-yellow)
+![status](https://img.shields.io/badge/status-M4_verified-green)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.12+-3776AB?logo=python&logoColor=white)
 
-**M4 is implemented and locally verified on `feat/m4-implementation`. GitHub CI awaits publication.**
+**M4 is implemented and verified on `feat/m4-implementation`, including GitHub CI.**
+Review [PR #4](https://github.com/Shellghostt/SchemaSentry/pull/4); it is open and not merged.
 SchemaSentry assesses supplied/observed PostgreSQL schema states with ten rules, explicit evidence,
 deterministic risk scoring and Markdown/JSON reports. M1–M3 are merged with passing CI.
 See the [M4 validation record](docs/testing/m4-validation.md) for the measured gates and limitations.
@@ -290,14 +291,17 @@ successful [main CI](https://github.com/Shellghostt/SchemaSentry/actions/runs/43
 and [development-tool audit](docs/DEVELOPMENT-TOOLS.md) before debugging.
 The [M4 requirements](docs/phases/M4.md), accepted [scoring/report ADR](docs/adr/0005-m4-risk-and-report-contract.md)
 and [validation](docs/testing/m4-validation.md) document implemented SS008–SS010 and public assessment.
-All local gates passed; final Python/PG GitHub CI remains pending publication. M4 is not merged or released.
+All local gates and the Python/PG GitHub CI matrices passed for `de44a2b`:
+[branch CI](https://github.com/Shellghostt/SchemaSentry/actions/runs/44797738740) and
+[PR CI](https://github.com/Shellghostt/SchemaSentry/actions/runs/44797752285), six jobs each.
+M4 is not merged or released.
 
 | Milestone | Deliverable | Status |
 |---|---|---|
 | M1 | PostgreSQL introspection and normalised snapshot format | **Done** (v0.1.0) |
 | M2 | Snapshot storage and structural comparison | **Done (merged)** |
 | M3 | Internal classification rules SS001-SS007 | **Done (merged)** |
-| M4 | SS008–SS010, scoring, reports and public commands | Locally verified; GitHub CI pending |
+| M4 | SS008–SS010, scoring, reports and public commands | Verified locally and in CI; PR #4 open |
 | M5 | GitHub Action and CI integration | Not started |
 | M6 | MySQL support and migration performance analysis | Not started |
 

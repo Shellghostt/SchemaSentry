@@ -30,17 +30,18 @@ merged at `3c76af15670643640cb0efef4d1ab9a49956ca73`, with successful
 evidence API. The [M3 requirements](phases/M3.md) and [validation record](testing/m3-validation.md)
 record 59 reviewed cases, live PG13/15/16 evidence and canonical local gates.
 The [development-tool audit](DEVELOPMENT-TOOLS.md) records profiling limits. No new release is claimed.
-M4 is **implemented and locally verified on `feat/m4-implementation`**. Accepted
+M4 is **implemented and verified on `feat/m4-implementation`, including GitHub CI**. Accepted
 [ADR 0005](adr/0005-m4-risk-and-report-contract.md), [M4 requirements](phases/M4.md) and
 [validation](testing/m4-validation.md) define the ten-rule public assessment, catalog extension and
-report policy. Final GitHub Python/PG CI awaits publication. M4 is not merged or released.
+report policy. [PR #4](https://github.com/Shellghostt/SchemaSentry/pull/4) is open; branch/PR CI passed
+all six jobs for `de44a2b`. M4 is not merged or released.
 
 ```yaml
 project: SchemaSentry
 status: mvp
 version: 0.1.0
 builds: true
-functional: true               # M4 assessment is locally verified; GitHub CI is pending
+functional: true               # M4 assessment is locally/CI verified; PR #4 is open
 
 implemented:
   - typer cli with version, snapshot and structural diff
@@ -491,7 +492,7 @@ for `b73f9db`: Python 3.12/3.13, PG13/15/16 integration and dependency audit.
 
 **Deliverable:** rules SS008–SS010, risk levels, Markdown and JSON reports, exit codes, `compare` and `explain`.
 
-Status: **Implemented and locally verified; final GitHub CI awaits publication.** Accepted
+Status: **Complete and verified locally/in GitHub CI; PR #4 is open.** Accepted
 [ADR 0005](adr/0005-m4-risk-and-report-contract.md) was committed before code; the nine reviewed M4
 oracles were committed before dependent rule implementation. SS-020A and SS-021–SS-025 are implemented.
 Read [M4 requirements](phases/M4.md) and [validation](testing/m4-validation.md).
@@ -506,7 +507,11 @@ Read [M4 requirements](phases/M4.md) and [validation](testing/m4-validation.md).
 - [x] Public compare/explain/rules and incomplete-analysis exits match section 8; structural diff remains unchanged
 - [x] Report is byte-identical across runs and shuffled validated catalog inputs
 - [x] Public schema, input/output bounds, enum compatibility, read-only catalog and local canonical gates pass
-- [ ] Final Python 3.12/3.13 and PostgreSQL 13/15/16 GitHub CI passes after publication
+- [x] Python 3.12/3.13 and PostgreSQL 13/15/16 GitHub CI passed after publication for `de44a2b`
+
+Branch [44797738740](https://github.com/Shellghostt/SchemaSentry/actions/runs/44797738740) and PR
+[44797752285](https://github.com/Shellghostt/SchemaSentry/actions/runs/44797752285) each passed all six
+jobs, including documentation/schema checks and package builds. Merge remains a separate decision.
 
 ### M5 — GitHub Action
 
@@ -623,7 +628,7 @@ captures a deterministic JSON snapshot of a PostgreSQL 13 to 17 database through
 transaction. M2 compares snapshot structure with deterministic JSON and 30 fixture pairs. M3 adds
 internal SS001–SS007 classification, bounded SQL/rename-hint evidence and 59 reviewed corpus cases.
 M4 adds SS008–SS010, capped risk scoring, versioned reports and compare/rules/explain. Local gates and
-installed-runtime checks pass; final GitHub CI is pending. It performs no migration execution or prediction.
+installed-runtime checks and GitHub Python/PG CI pass. It performs no migration execution or prediction.
 
 **Rules:**
 
@@ -654,8 +659,8 @@ installed-runtime checks pass; final GitHub CI is pending. It performs no migrat
 1. Read sections 0, 3 and 9.
 2. Run `make bootstrap`, `make test`, `make lint`, `make type`, `make build`, `make check-docs` and
    `make audit`; use a disposable server for live evidence.
-3. M1–M3 are merged with successful main CI. M4 is locally verified on its feature branch. Read
+3. M1–M3 are merged with successful main CI. M4 is locally/CI verified on its feature branch. Read
    [M4 requirements](phases/M4.md), accepted ADR 0005 and [validation](testing/m4-validation.md), then
-   preserve the implemented [M3 contract](phases/M3.md). Final GitHub CI and merge remain pending.
+   preserve the implemented [M3 contract](phases/M3.md). Recheck the latest PR head before the merge decision.
 4. Before changing a rule, add the corpus case that proves the change.
 5. If a finding is wrong, the fix is a new case plus a rule change — never a special case in the renderer.

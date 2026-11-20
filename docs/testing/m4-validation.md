@@ -6,8 +6,8 @@ M4 is implemented and locally verified on `feat/m4-implementation`, based on mer
 the nine independently reviewed M4 oracles were committed in `31557cc` before dependent rules.
 The 59 M3 cases and their expectations are unchanged.
 
-**Published at [PR #4](https://github.com/Shellghostt/SchemaSentry/pull/4); final GitHub CI is pending.
-No M4 merge or release is claimed.**
+**Published at [PR #4](https://github.com/Shellghostt/SchemaSentry/pull/4); branch/PR GitHub CI passed
+all six jobs for `de44a2b`. No M4 merge or release is claimed.**
 This record covers the local work performed on 2026-11-20–21 and maps the
 [M4 requirements](../phases/M4.md) to actual checks.
 
@@ -62,7 +62,7 @@ setuptools 84.2.1/wheel 0.48.0. Updated bootstrap and the Python CI install step
 | Unprivileged/read-only Docker runtime, network disabled, Python 3.12.16 | **Same complete installed-runtime checks passed** |
 | Owned 500-table capture and lifecycle profile | Passed existing snapshot/diff/corpus/RSS budgets; measurements below |
 | Existing CodeGraph refresh and `git diff --check` | Passed; generated index and raw artifacts remain ignored |
-| Final GitHub Python 3.12/3.13 and PG13/15/16 CI | **Pending corrected workflow; not a passing check yet** |
+| GitHub Python 3.12/3.13 and PG13/15/16 CI at `de44a2b` | **Passed all six jobs in both branch and PR runs** |
 
 The 60-second criterion applies to the reviewed corpus, not the complete suite with subprocess/live
 integration checks. The final native suite was run alongside separate PG13/15 jobs; measured times
@@ -76,7 +76,12 @@ and [PR CI 44797205018](https://github.com/Shellghostt/SchemaSentry/actions/runs
 Python jobs at documentation checking: Actions installs into its configured interpreter, while the new
 Make steps expected a `.venv` that the workflow does not create. CI now overrides `VENV_PY=python` for
 documentation and package targets, preserving normal local virtualenv behavior. No application code
-changed for this correction. Final passing workflow evidence will be recorded separately.
+changed for this correction. Corrected branch
+[44797738740](https://github.com/Shellghostt/SchemaSentry/actions/runs/44797738740) and PR
+[44797752285](https://github.com/Shellghostt/SchemaSentry/actions/runs/44797752285) both passed all six
+jobs for `de44a2b`: Python 3.12/3.13 lint/format/types/schema/docs/build/tests, PG13/15/16 integration,
+and the dependency audit. PR CI completed at 00:29:14 IST on 2026-11-21. This establishes the source/
+workflow validation; any later documentation commit still needs its own latest-head PR checks.
 
 ## Acceptance mapping
 
@@ -193,5 +198,5 @@ Each disposable server had zero owned `ss_m3_`/`ss_m4_` databases and `ss_it_` s
 The three task-owned services were stopped with
 `docker compose -p ss-m4-20261120 -f dist/m4-pg.compose.json down` without volume deletion.
 Existing Docker projects/data are preserved. Logs, wheel, runtime image and raw profiles
-remain local for review. The feature branch and PR are published with authorization; final GitHub CI
-must pass before the separate merge decision.
+remain local for review. The feature branch and PR are published with authorization, and branch/PR CI
+passed for `de44a2b`. Check the latest PR head before the separate merge decision.

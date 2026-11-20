@@ -1,6 +1,6 @@
 # SchemaSentry Architecture
 
-**M4 is implemented and locally verified on `feat/m4-implementation`; GitHub CI awaits publication.**
+**M4 is implemented and verified locally/in GitHub CI on `feat/m4-implementation`; PR #4 is open.**
 M1–M3 remain merged. Read-only introspection feeds deterministic snapshots, structural comparison and
 ten-rule public assessment. Optional SQL/hints supply bounded evidence. [PLAN.md](PLAN.md) is authoritative;
 [ADR 0003](adr/0003-m2-structural-comparison.md) preserves structural contracts and
@@ -84,4 +84,4 @@ unavailable and `estimatedSeconds` stays null. Incomplete analysis takes precede
 controls become visible in Markdown. `report_io.py` checks writes/flushes and uses staged atomic replacement
 without overwriting selected inputs. `registry.py` supplies ten metadata definitions; `make check-docs`
 detects drift in their pages and public schemas. [M4 validation](testing/m4-validation.md) records the
-native and installed-runtime evidence, 500-table profile and pending final GitHub CI.
+native and installed-runtime evidence, 500-table profile and passing branch/PR GitHub CI.
